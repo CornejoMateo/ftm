@@ -12,6 +12,10 @@ export const metadata: Metadata = {
   title: "Futbol Manager",
   description:
     "Aplicación para gestionar tu equipo de futbol",
+  icons: {
+    icon: "/icons/icon.png",
+    apple: "/icons/icon.png",
+  },
 }
 
 export const viewport: Viewport = {
