@@ -59,7 +59,7 @@ export default function PlayersContent() {
 		load();
 	}, [load]);
 
-	// Extraer categorías únicas
+	// Extract unique categories for filter dropdown
 	const categories = useMemo(() => {
 		const uniqueCategories = new Set(
 			players.map((p) => p.category).filter((c): c is string => !!c)

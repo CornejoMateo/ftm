@@ -14,12 +14,8 @@ import { getPlayerStats, type MatchStat } from './db';
 
 import { revalidatePath } from 'next/cache';
 
-// Tipos para respuestas
+// response types
 type ActionResult<T = void> = { success: true; data?: T } | { success: false; error: string };
-
-// ============================================
-// PLAYERS - Server Actions
-// ============================================
 
 export async function fetchAllPlayers() {
 	try {

@@ -49,8 +49,8 @@ export default function PlayerForm({ open, onOpenChange, player, onSuccess }: Pl
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
-		if (!name.trim() || !lastName.trim() || !dni.trim() || !dateOfBirth) {
-			toast.error('Nombre, apellido, DNI y fecha de nacimiento son requeridos');
+		if (!name.trim() || !lastName.trim()) {
+			toast.error('Nombre y apellido son requeridos');
 			return;
 		}
 		setLoading(true);

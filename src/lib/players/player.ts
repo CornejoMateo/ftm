@@ -136,7 +136,6 @@ export function updatePlayer(
 		}
 	}
 
-	// Construir la consulta de actualización dinámicamente
 	const fields = Object.keys(data);
 	if (fields.length === 0) {
 		return player;
