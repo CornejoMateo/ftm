@@ -1,0 +1,23 @@
+{
+  "name": "ftm",
+  "version": "1.0.0",
+  "description": "Futbol Manager - Aplicación Electron con Next.js",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && cd src && npm install && cd ../electron-app && npm install",
+    "dev:next": "cd src && npm run dev",
+    "dev:electron": "cd electron-app && NODE_ENV=development npm start",
+    "dev": "npm run dev:next",
+    "build:next": "cd src && npm run build",
+    "build:electron": "cd electron-app && npm install",
+    "build": "npm run build:next && npm run build:electron",
+    "start": "npm run dev:next",
+    "electron": "npm run dev:electron"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CornejoMateo/ftm"
+  },
+  "author": "Mateo Cornejo",
+  "license": "ISC"
+}

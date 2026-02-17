@@ -1,0 +1,15 @@
+export const playerPositions = [
+	{ value: 'PO', label: 'PO – Portero' },
+	{ value: 'LI', label: 'LI – Defensa lateral izquierdo' },
+	{ value: 'DFC', label: 'DFC – Defensa central' },
+	{ value: 'LD', label: 'LD – Defensa lateral derecho' },
+	{ value: 'MCD', label: 'MCD – Mediocentro defensivo' },
+	{ value: 'MC', label: 'MC – Mediocentro' },
+	{ value: 'MCO', label: 'MCO – Mediocentro ofensivo' },
+	{ value: 'MI', label: 'MI – Mediocampista izquierdo' },
+	{ value: 'MD', label: 'MD – Mediocampista derecho' },
+	{ value: 'EI', label: 'EI – Extremo izquierdo' },
+	{ value: 'ED', label: 'ED – Extremo derecho' },
+	{ value: 'SD', label: 'SD – Segundo delantero' },
+	{ value: 'DC', label: 'DC – Delantero centro' },
+];

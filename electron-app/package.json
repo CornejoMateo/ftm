@@ -1,0 +1,12 @@
+{
+  "name": "ftm-electron",
+  "version": "1.0.0",
+  "description": "Electron wrapper for FTM Next.js application",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^40.4.1"
+  }
+}
