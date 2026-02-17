@@ -7,6 +7,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import {
+	Pagination,
+	PaginationContent,
+	PaginationItem,
+	PaginationLink,
+	PaginationNext,
+	PaginationPrevious,
+} from '@/components/ui/pagination';
+import {
 	Select,
 	SelectContent,
 	SelectItem,
@@ -37,6 +45,8 @@ import PlayerForm from '@/components/player-form';
 import type { PlayerWithAge } from '@/lib/players/player';
 import { Badge } from '@/components/ui/badge';
 
+const ITEMS_PER_PAGE = 10;
+
 export default function PlayersContent() {
 	const [players, setPlayers] = useState<PlayerWithAge[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -47,6 +57,7 @@ export default function PlayersContent() {
 	const [deleteId, setDeleteId] = useState<number | null>(null);
 	const [sortBy, setSortBy] = useState<'name' | 'age' | 'created'>('name');
 	const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+	const [currentPage, setCurrentPage] = useState(1);
 
 	const load = useCallback(async () => {
 		setLoading(true);
@@ -91,6 +102,22 @@ export default function PlayersContent() {
 			if (sortBy === 'created') cmp = a.created_at.localeCompare(b.created_at);
 			return sortDir === 'desc' ? -cmp : cmp;
 		});
+
+	// Reset to page 1 when filters change
+	useEffect(() => {
+		setCurrentPage(1);
+	}, [search, categoryFilter]);
+
+	// Pagination calculations
+	const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+	const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+	const endIndex = startIndex + ITEMS_PER_PAGE;
+	const paginatedPlayers = filtered.slice(startIndex, endIndex);
+
+	function handlePageChange(page: number) {
+		setCurrentPage(page);
+		window.scrollTo({ top: 0, behavior: 'smooth' });
+	}
 
 	async function handleDelete() {
 		if (!deleteId) return;
@@ -196,7 +223,7 @@ export default function PlayersContent() {
 											</TableCell>
 										</TableRow>
 									) : (
-										filtered.map((player) => (
+											paginatedPlayers.map((player) => (
 											<TableRow key={player.id}>
 												<TableCell className="font-medium text-center">
 													{player.name} {player.last_name}
@@ -274,7 +301,7 @@ export default function PlayersContent() {
 									No hay jugadores registrados
 								</p>
 							) : (
-								filtered.map((player) => (
+								paginatedPlayers.map((player) => (
 									<div
 										key={player.id}
 										className="flex flex-col gap-2 rounded-lg border border-border p-3"
@@ -343,10 +370,60 @@ export default function PlayersContent() {
 						</div>
 					</CardContent>
 				</Card>
-			</div>
 
-			{/* Player form dialog */}
-			{formOpen && (
+			{/* Pagination */}
+			{totalPages > 1 && (
+				<div className="flex flex-col items-center gap-2">
+					<Pagination>
+						<PaginationContent>
+							<PaginationItem>
+								<PaginationPrevious
+									href="#"
+									onClick={(e) => {
+										e.preventDefault();
+										if (currentPage > 1) handlePageChange(currentPage - 1);
+									}}
+									aria-disabled={currentPage === 1}
+									className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+								/>
+							</PaginationItem>
+							{Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+								<PaginationItem key={page}>
+									<PaginationLink
+										href="#"
+										onClick={(e) => {
+											e.preventDefault();
+											handlePageChange(page);
+										}}
+										isActive={currentPage === page}
+									>
+										{page}
+									</PaginationLink>
+								</PaginationItem>
+							))}
+							<PaginationItem>
+								<PaginationNext
+									href="#"
+									onClick={(e) => {
+										e.preventDefault();
+										if (currentPage < totalPages) handlePageChange(currentPage + 1);
+									}}
+									aria-disabled={currentPage === totalPages}
+									className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+								/>
+							</PaginationItem>
+						</PaginationContent>
+					</Pagination>
+					<p className="text-sm text-muted-foreground">
+						Mostrando {startIndex + 1}-{Math.min(endIndex, filtered.length)} de {filtered.length}{' '}
+						jugadores
+					</p>
+				</div>
+			)}
+		</div>
+
+		{/* Player form dialog */}
+		{formOpen && (
 				<PlayerForm
 					key={editingPlayer?.id ?? 'new'}
 					open={formOpen}
