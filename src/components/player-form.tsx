@@ -123,7 +123,7 @@ export default function PlayerForm({ open, onOpenChange, player, onSuccess }: Pl
 					</div>
 					<div className="flex flex-col gap-2">
 						<Label htmlFor="dni">DNI</Label>
-						<Input id="dni" value={dni} onChange={(e) => setDni(e.target.value)} required />
+						<Input id="dni" value={dni} onChange={(e) => setDni(e.target.value)} />
 					</div>
 					<div className="flex flex-col gap-2">
 						<Label htmlFor="dateOfBirth">Fecha de Nacimiento</Label>
@@ -132,7 +132,6 @@ export default function PlayerForm({ open, onOpenChange, player, onSuccess }: Pl
 							type="date"
 							value={dateOfBirth}
 							onChange={(e) => setDateOfBirth(e.target.value)}
-							required
 						/>
 					</div>
 					<div className="flex flex-col gap-2">

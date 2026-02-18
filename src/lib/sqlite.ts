@@ -9,7 +9,7 @@ let db: Database.Database | null = null;
 // get or create the database connection
 export function getDb(): Database.Database {
 	if (!db) {
-		db = new Database(dbPath, { verbose: console.log });
+		db = new Database(dbPath);
 		db.pragma('journal_mode = WAL');
 		initializeDatabase();
 	}
@@ -43,12 +43,32 @@ function initializeDatabase() {
       result TEXT NOT NULL,
       referee TEXT NOT NULL,
       date TEXT NOT NULL,
+      category TEXT,
       home INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL DEFAULT (date('now'))
     )
   `);
 
-	console.log('Base de datos inicializada');
+	// match_players table
+	db.exec(`
+    CREATE TABLE IF NOT EXISTS match_players (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      match_id INTEGER NOT NULL,
+      player_id INTEGER NOT NULL,
+      minutes_played INTEGER NOT NULL DEFAULT 0,
+      goals INTEGER NOT NULL DEFAULT 0,
+      assists INTEGER NOT NULL DEFAULT 0,
+      yellow_cards INTEGER NOT NULL DEFAULT 0,
+      red_cards INTEGER NOT NULL DEFAULT 0,
+      starter INTEGER NOT NULL DEFAULT 1,
+      minute_login INTEGER,
+      calification INTEGER,
+      created_at TEXT NOT NULL DEFAULT (date('now')),
+      FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE,
+      FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE,
+      UNIQUE(match_id, player_id)
+    )
+  `);
 }
 
 // Close the database connection when the process exits

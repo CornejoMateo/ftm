@@ -16,6 +16,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select';
+import {
 	Table,
 	TableBody,
 	TableCell,
@@ -36,6 +43,7 @@ import {
 import { toast } from 'sonner';
 import { fetchAllMatches, removeMatch } from '@/lib/actions';
 import MatchForm from '@/components/match-form';
+import MatchDetails from '@/components/match-details';
 import type { Match } from '@/lib/matchs/match';
 import { Badge } from '@/components/ui/badge';
 
@@ -43,6 +51,7 @@ export default function MatchsContent() {
 	const [matches, setMatches] = useState<Match[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [search, setSearch] = useState('');
+	const [categoryFilter, setCategoryFilter] = useState<string>('all');
 	const [formOpen, setFormOpen] = useState(false);
 	const [editingMatch, setEditingMatch] = useState<Match | null>(null);
 	const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -50,6 +59,8 @@ export default function MatchsContent() {
 	const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 	const [currentPage, setCurrentPage] = useState(1);
 	const itemsPerPage = 10;
+	const [detailsOpen, setDetailsOpen] = useState(false);
+	const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
 
 	const load = useCallback(async () => {
 		setLoading(true);
@@ -62,10 +73,10 @@ export default function MatchsContent() {
 		load();
 	}, [load]);
 
-	// Reset page when search changes
+	// Reset page when search or category filter changes
 	useEffect(() => {
 		setCurrentPage(1);
-	}, [search]);
+	}, [search, categoryFilter]);
 
 	function handleSort(field: 'date' | 'opponent') {
 		if (sortBy === field) {
@@ -76,12 +87,16 @@ export default function MatchsContent() {
 		}
 	}
 
+	// Get unique categories
+	const categories = Array.from(new Set(matches.map((m) => m.category).filter(Boolean)));
+
 	const filtered = matches
 		.filter(
 			(m) =>
-				m.opponent.toLowerCase().includes(search.toLowerCase()) ||
-				m.referee.toLowerCase().includes(search.toLowerCase()) ||
-				m.result.toLowerCase().includes(search.toLowerCase())
+				(m.opponent.toLowerCase().includes(search.toLowerCase()) ||
+					m.referee.toLowerCase().includes(search.toLowerCase()) ||
+					m.result.toLowerCase().includes(search.toLowerCase())) &&
+				(categoryFilter === 'all' || m.category === categoryFilter)
 		)
 		.sort((a, b) => {
 			let cmp = 0;
@@ -98,6 +113,11 @@ export default function MatchsContent() {
 
 	function goToPage(page: number) {
 		setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+	}
+
+	function handleViewDetails(match: Match) {
+		setSelectedMatch(match);
+		setDetailsOpen(true);
 	}
 
 	async function handleDelete() {
@@ -194,6 +214,19 @@ export default function MatchsContent() {
 							className="pl-10"
 						/>
 					</div>
+					<Select value={categoryFilter} onValueChange={setCategoryFilter}>
+						<SelectTrigger className="w-full sm:w-[200px]">
+							<SelectValue placeholder="Todas las categorías" />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="all">Todas las categorías</SelectItem>
+							{categories.map((category) => (
+								<SelectItem key={category} value={category}>
+									{category}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
 				</div>
 
 				<Card>
@@ -232,7 +265,11 @@ export default function MatchsContent() {
 										</TableRow>
 									) : (
 										paginatedMatches.map((match) => (
-											<TableRow key={match.id}>
+											<TableRow
+												key={match.id}
+												className="cursor-pointer hover:bg-muted/50"
+												onClick={() => handleViewDetails(match)}
+											>
 												<TableCell className="text-center">
 													<div className="flex items-center justify-center gap-1">
 														<Calendar className="h-4 w-4 text-muted-foreground" />
@@ -264,7 +301,7 @@ export default function MatchsContent() {
 														</Badge>
 													)}
 												</TableCell>
-												<TableCell className="text-center">
+												<TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
 													<div className="flex items-center justify-center gap-1">
 														<Button
 															variant="ghost"
@@ -304,7 +341,8 @@ export default function MatchsContent() {
 								paginatedMatches.map((match) => (
 									<div
 										key={match.id}
-										className="flex flex-col gap-2 rounded-lg border border-border p-3"
+										className="flex flex-col gap-2 rounded-lg border border-border p-3 cursor-pointer hover:bg-muted/50"
+										onClick={() => handleViewDetails(match)}
 									>
 										<div className="flex items-start justify-between">
 											<div className="flex-1">
@@ -340,7 +378,10 @@ export default function MatchsContent() {
 												</p>
 											</div>
 										</div>
-										<div className="flex items-center justify-end gap-1 border-t pt-2">
+										<div
+											className="flex items-center justify-end gap-1 border-t pt-2"
+											onClick={(e) => e.stopPropagation()}
+										>
 											<Button
 												variant="ghost"
 												size="icon"
@@ -432,7 +473,7 @@ export default function MatchsContent() {
 					onSuccess={load}
 				/>
 			)}
-
+			<MatchDetails match={selectedMatch} open={detailsOpen} onOpenChange={setDetailsOpen} />
 			{/* Delete confirmation */}
 			<AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
 				<AlertDialogContent>

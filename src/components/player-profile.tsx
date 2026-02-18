@@ -2,24 +2,37 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Target, HandHelping, AlertTriangle, Timer, Trophy } from 'lucide-react';
+import {
+	ArrowLeft,
+	Target,
+	HandHelping,
+	AlertTriangle,
+	Timer,
+	Trophy,
+	Shield,
+	Users,
+	TrendingUp,
+	Award,
+	Flame,
+	Star,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { fetchPlayer, fetchPlayerStats } from '@/lib/actions';
+import { Card, CardContent } from '@/components/ui/card';
+import { fetchPlayer, fetchPlayerMatchStats } from '@/lib/actions';
 import type { PlayerWithAge } from '@/lib/players/player';
-import type { MatchStat } from '@/lib/db';
+import type { MatchPlayerWithMatchInfo } from '@/lib/matchs_players/match_player';
 
 export default function PlayerProfile() {
 	const params = useParams();
 	const router = useRouter();
 	const playerId = Number(params.id);
 	const [player, setPlayer] = useState<PlayerWithAge | null>(null);
-	const [stats, setStats] = useState<MatchStat[]>([]);
+	const [stats, setStats] = useState<MatchPlayerWithMatchInfo[]>([]);
 	const [loading, setLoading] = useState(true);
 
 	const load = useCallback(async () => {
 		setLoading(true);
-		const [p, s] = await Promise.all([fetchPlayer(playerId), fetchPlayerStats(playerId)]);
+		const [p, s] = await Promise.all([fetchPlayer(playerId), fetchPlayerMatchStats(playerId)]);
 		setPlayer(p || null);
 		setStats(s);
 		setLoading(false);
@@ -57,6 +70,60 @@ export default function PlayerProfile() {
 		matches: stats.length,
 	};
 
+	// Calculate starter vs substitute matches
+	const starterMatches = stats.filter((s) => s.starter).length;
+	const substituteMatches = stats.filter((s) => !s.starter).length;
+
+	// Opponents with most goals
+	const goalsByOpponent = new Map<string, number>();
+	for (const s of stats) {
+		if (s.goals > 0) {
+			goalsByOpponent.set(s.match_opponent, (goalsByOpponent.get(s.match_opponent) || 0) + s.goals);
+		}
+	}
+	const favoriteOpponent =
+		goalsByOpponent.size > 0
+			? Array.from(goalsByOpponent.entries()).sort((a, b) => b[1] - a[1])[0]
+			: null;
+
+	// AVG goals and minutes
+	const avgGoals = totals.matches > 0 ? (totals.goals / totals.matches).toFixed(2) : '0.00';
+	const avgMinutes = totals.matches > 0 ? Math.round(totals.minutes / totals.matches) : 0;
+
+	// Most goals in a single match
+	const bestMatch =
+		stats.length > 0
+			? stats.reduce((best, current) => (current.goals > best.goals ? current : best), stats[0])
+			: null;
+
+	// Longest scoring streak
+	let currentStreak = 0;
+	let maxStreak = 0;
+	for (const s of stats) {
+		if (s.goals > 0) {
+			currentStreak++;
+			maxStreak = Math.max(maxStreak, currentStreak);
+		} else {
+			currentStreak = 0;
+		}
+	}
+
+	// Calification stats
+	const statsWithCalification = stats.filter((s) => s.calification !== null);
+	const bestCalification =
+		statsWithCalification.length > 0
+			? statsWithCalification.reduce((best, current) =>
+					current.calification! > best.calification! ? current : best
+				)
+			: null;
+	const avgCalification =
+		statsWithCalification.length > 0
+			? (
+					statsWithCalification.reduce((sum, s) => sum + s.calification!, 0) /
+					statsWithCalification.length
+				).toFixed(2)
+			: null;
+
 	// Group stats by month for chart
 	const monthlyMap = new Map<string, { month: string; goals: number; assists: number }>();
 	for (const s of stats) {
@@ -75,21 +142,81 @@ export default function PlayerProfile() {
 		.map(([, v]) => v);
 
 	const summaryCards = [
-		{ title: 'Partidos', value: totals.matches, icon: Trophy, color: 'text-primary' },
+		{ title: 'Partidos jugados', value: totals.matches, icon: Trophy, color: 'text-primary' },
+		{ title: 'Como titular', value: starterMatches, icon: Shield, color: 'text-blue-500' },
+		{ title: 'Como suplente', value: substituteMatches, icon: Users, color: 'text-purple-500' },
 		{ title: 'Goles', value: totals.goals, icon: Target, color: 'text-chart-1' },
+		{ title: 'Promedio goles', value: avgGoals, icon: TrendingUp, color: 'text-green-500' },
 		{ title: 'Asistencias', value: totals.assists, icon: HandHelping, color: 'text-chart-2' },
 		{
 			title: 'Tarjetas amarillas',
 			value: totals.yellow_cards,
 			icon: AlertTriangle,
-			color: 'text-chart-3',
+			color: 'text-yellow-500',
 		},
 		{
-			title: 'Minutos',
+			title: 'Tarjetas rojas',
+			value: totals.red_cards,
+			icon: AlertTriangle,
+			color: 'text-red-500',
+		},
+		{
+			title: 'Minutos jugados',
 			value: totals.minutes.toLocaleString(),
 			icon: Timer,
 			color: 'text-chart-5',
 		},
+		{ title: 'Promedio minutos', value: avgMinutes, icon: Timer, color: 'text-slate-500' },
+		...(bestMatch && bestMatch.goals > 0
+			? [
+					{
+						title: 'Mejor partido',
+						value: `${bestMatch.goals} gol${bestMatch.goals > 1 ? 'es' : ''} vs ${bestMatch.match_opponent}`,
+						icon: Award,
+						color: 'text-amber-500',
+					},
+				]
+			: []),
+		...(maxStreak > 0
+			? [
+					{
+						title: 'Racha de goles',
+						value: `${maxStreak} partido${maxStreak > 1 ? 's' : ''}`,
+						icon: Flame,
+						color: 'text-orange-500',
+					},
+				]
+			: []),
+		...(favoriteOpponent
+			? [
+					{
+						title: 'Rival favorito',
+						value: `${favoriteOpponent[0]} (${favoriteOpponent[1]} gol${favoriteOpponent[1] > 1 ? 'es' : ''})`,
+						icon: Target,
+						color: 'text-pink-500',
+					},
+				]
+			: []),
+		...(avgCalification
+			? [
+					{
+						title: 'Calificación promedio',
+						value: avgCalification,
+						icon: Star,
+						color: 'text-yellow-600',
+					},
+				]
+			: []),
+		...(bestCalification
+			? [
+					{
+						title: 'Mejor calificación',
+						value: `${bestCalification.calification} vs ${bestCalification.match_opponent}`,
+						icon: Star,
+						color: 'text-yellow-500',
+					},
+				]
+			: []),
 	];
 
 	return (
@@ -120,7 +247,7 @@ export default function PlayerProfile() {
 			</div>
 
 			{/* Summary cards */}
-			<div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+			<div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
 				{summaryCards.map((card) => (
 					<Card key={card.title}>
 						<CardContent className="flex flex-col gap-1 p-4">
@@ -128,7 +255,7 @@ export default function PlayerProfile() {
 								<card.icon className={`h-4 w-4 ${card.color}`} />
 								<span className="text-xs text-muted-foreground">{card.title}</span>
 							</div>
-							<p className="text-2xl font-bold text-card-foreground">{card.value}</p>
+							<p className="text-lg font-bold text-card-foreground">{card.value}</p>
 						</CardContent>
 					</Card>
 				))}

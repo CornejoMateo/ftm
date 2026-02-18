@@ -6,6 +6,7 @@ export interface Match {
 	result: string;
 	referee: string;
 	date: string;
+	category: string;
 	home: boolean;
 	created_at: string;
 }
@@ -62,8 +63,8 @@ export function createMatch(data: MatchInput): Match {
 
 	const rowData = matchToRow(data);
 	const stmt = db.prepare(`
-		INSERT INTO matches (opponent, result, referee, date, home)
-		VALUES (@opponent, @result, @referee, @date, @home)
+		INSERT INTO matches (opponent, result, referee, date, category, home)
+		VALUES (@opponent, @result, @referee, @date, @category, @home)
 	`);
 
 	const result = stmt.run(rowData);

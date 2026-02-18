@@ -21,6 +21,23 @@ import {
 	type MatchInput,
 } from './matchs/match';
 
+import {
+	getAllMatchPlayers,
+	getMatchPlayersByMatch,
+	getMatchPlayersByPlayer,
+	getMatchPlayer,
+	getMatchPlayerByMatchAndPlayer,
+	getMatchPlayersWithMatchInfo,
+	createMatchPlayer,
+	updateMatchPlayer,
+	deleteMatchPlayer,
+	deleteMatchPlayersByMatch,
+	deleteMatchPlayersByPlayer,
+	type MatchPlayer,
+	type MatchPlayerInput,
+	type MatchPlayerWithMatchInfo,
+} from './matchs_players/match_player';
+
 import { getPlayerStats, type MatchStat } from './db';
 
 import { revalidatePath } from 'next/cache';
@@ -94,6 +111,15 @@ export async function fetchPlayerStats(playerId: number): Promise<MatchStat[]> {
 	}
 }
 
+export async function fetchPlayerMatchStats(playerId: number): Promise<MatchPlayerWithMatchInfo[]> {
+	try {
+		return getMatchPlayersWithMatchInfo(playerId);
+	} catch (error: any) {
+		console.error('Error al obtener estadísticas de partidos del jugador:', error);
+		return [];
+	}
+}
+
 export async function fetchAllMatches() {
 	try {
 		return getAllMatches();
@@ -151,6 +177,114 @@ export async function removeMatch(id: number): Promise<ActionResult> {
 		deleteMatch(id);
 		revalidatePath('/matchs');
 		revalidatePath('/');
+		return { success: true };
+	} catch (error: any) {
+		return { success: false, error: error.message };
+	}
+}
+
+// Match Players Actions
+
+export async function fetchAllMatchPlayers() {
+	try {
+		return getAllMatchPlayers();
+	} catch (error: any) {
+		console.error('Error al obtener relaciones partido-jugador:', error);
+		throw error;
+	}
+}
+
+export async function fetchMatchPlayersByMatch(matchId: number) {
+	try {
+		return getMatchPlayersByMatch(matchId);
+	} catch (error: any) {
+		console.error('Error al obtener jugadores del partido:', error);
+		throw error;
+	}
+}
+
+export async function fetchMatchPlayersByPlayer(playerId: number) {
+	try {
+		return getMatchPlayersByPlayer(playerId);
+	} catch (error: any) {
+		console.error('Error al obtener partidos del jugador:', error);
+		throw error;
+	}
+}
+
+export async function fetchMatchPlayer(id: number) {
+	try {
+		return getMatchPlayer(id);
+	} catch (error: any) {
+		console.error('Error al obtener relación partido-jugador:', error);
+		throw error;
+	}
+}
+
+export async function fetchMatchPlayerByMatchAndPlayer(matchId: number, playerId: number) {
+	try {
+		return getMatchPlayerByMatchAndPlayer(matchId, playerId);
+	} catch (error: any) {
+		console.error('Error al obtener relación partido-jugador:', error);
+		throw error;
+	}
+}
+
+export async function addMatchPlayer(data: MatchPlayerInput): Promise<ActionResult<MatchPlayer>> {
+	try {
+		const matchPlayer = createMatchPlayer(data);
+		revalidatePath('/matchs');
+		revalidatePath(`/players/${data.player_id}`);
+		return { success: true, data: matchPlayer };
+	} catch (error: any) {
+		return { success: false, error: error.message };
+	}
+}
+
+export async function editMatchPlayer(
+	id: number,
+	data: Partial<MatchPlayerInput>
+): Promise<ActionResult<MatchPlayer>> {
+	try {
+		const matchPlayer = updateMatchPlayer(id, data);
+		revalidatePath('/matchs');
+		if (matchPlayer.player_id) {
+			revalidatePath(`/players/${matchPlayer.player_id}`);
+		}
+		return { success: true, data: matchPlayer };
+	} catch (error: any) {
+		return { success: false, error: error.message };
+	}
+}
+
+export async function removeMatchPlayer(id: number): Promise<ActionResult> {
+	try {
+		const matchPlayer = getMatchPlayer(id);
+		deleteMatchPlayer(id);
+		revalidatePath('/matchs');
+		if (matchPlayer) {
+			revalidatePath(`/players/${matchPlayer.player_id}`);
+		}
+		return { success: true };
+	} catch (error: any) {
+		return { success: false, error: error.message };
+	}
+}
+
+export async function removeMatchPlayersByMatch(matchId: number): Promise<ActionResult> {
+	try {
+		deleteMatchPlayersByMatch(matchId);
+		revalidatePath('/matchs');
+		return { success: true };
+	} catch (error: any) {
+		return { success: false, error: error.message };
+	}
+}
+
+export async function removeMatchPlayersByPlayer(playerId: number): Promise<ActionResult> {
+	try {
+		deleteMatchPlayersByPlayer(playerId);
+		revalidatePath(`/players/${playerId}`);
 		return { success: true };
 	} catch (error: any) {
 		return { success: false, error: error.message };

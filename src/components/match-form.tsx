@@ -31,13 +31,14 @@ export default function MatchForm({ open, onOpenChange, match, onSuccess }: Matc
 	const [result, setResult] = useState(match?.result ?? '');
 	const [referee, setReferee] = useState(match?.referee ?? '');
 	const [date, setDate] = useState(match?.date ?? '');
+	const [category, setCategory] = useState(match?.category ?? '');
 	const [home, setHome] = useState(match?.home ?? true);
 
 	const isEdit = !!match;
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
-		if (!opponent.trim() || !result.trim() || !date) {
+		if (!opponent.trim() || !result.trim() || !date || !category.trim()) {
 			toast.error('Todos los campos son requeridos');
 			return;
 		}
@@ -49,6 +50,7 @@ export default function MatchForm({ open, onOpenChange, match, onSuccess }: Matc
 					result,
 					referee,
 					date,
+					category,
 					home,
 				});
 				toast.success('Partido actualizado exitosamente');
@@ -58,6 +60,7 @@ export default function MatchForm({ open, onOpenChange, match, onSuccess }: Matc
 					result,
 					referee,
 					date,
+					category,
 					home,
 				});
 				toast.success('Partido creado exitosamente');
@@ -120,6 +123,15 @@ export default function MatchForm({ open, onOpenChange, match, onSuccess }: Matc
 							value={date}
 							onChange={(e) => setDate(e.target.value)}
 							required
+						/>
+					</div>
+					<div className="flex flex-col gap-2">
+						<Label htmlFor="category">Categoría</Label>
+						<Input
+							id="category"
+							value={category}
+							onChange={(e) => setCategory(e.target.value)}
+							placeholder="Categoría"
 						/>
 					</div>
 					<div className="flex items-center gap-2 md:col-span-2">
