@@ -10,6 +10,17 @@ import {
 	type PlayerWithAge,
 } from './players/player';
 
+import {
+	getAllMatches,
+	getMatch,
+	getMatchesByYear,
+	createMatch,
+	updateMatch,
+	deleteMatch,
+	type Match,
+	type MatchInput,
+} from './matchs/match';
+
 import { getPlayerStats, type MatchStat } from './db';
 
 import { revalidatePath } from 'next/cache';
@@ -80,5 +91,68 @@ export async function fetchPlayerStats(playerId: number): Promise<MatchStat[]> {
 	} catch (error: any) {
 		console.error('Error al obtener estadísticas del jugador:', error);
 		return [];
+	}
+}
+
+export async function fetchAllMatches() {
+	try {
+		return getAllMatches();
+	} catch (error: any) {
+		console.error('Error al obtener partidos:', error);
+		throw error;
+	}
+}
+
+export async function fetchMatchesByYear(year: number) {
+	try {
+		return getMatchesByYear(year);
+	} catch (error: any) {
+		console.error('Error al obtener partidos del año:', error);
+		throw error;
+	}
+}
+
+export async function fetchMatch(id: number) {
+	try {
+		return getMatch(id);
+	} catch (error: any) {
+		console.error('Error al obtener partido:', error);
+		throw error;
+	}
+}
+
+export async function addMatch(data: MatchInput): Promise<ActionResult<Match>> {
+	try {
+		const match = createMatch(data);
+		revalidatePath('/matchs');
+		revalidatePath('/');
+		return { success: true, data: match };
+	} catch (error: any) {
+		return { success: false, error: error.message };
+	}
+}
+
+export async function editMatch(
+	id: number,
+	data: Partial<MatchInput>
+): Promise<ActionResult<Match>> {
+	try {
+		const match = updateMatch(id, data);
+		revalidatePath('/matchs');
+		revalidatePath('/');
+		return { success: true, data: match };
+	} catch (error: any) {
+		return { success: false, error: error.message };
+	}
+}
+
+export async function removeMatch(id: number): Promise<ActionResult> {
+	try {
+		deleteMatch(id);
+		revalidatePath('/matchs');
+		revalidatePath('/');
+		return { success: true };
+	} catch (error: any) {
+		return { success: false, error: error.message };
 	}
 }

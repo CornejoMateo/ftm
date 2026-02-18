@@ -35,6 +35,19 @@ function initializeDatabase() {
     )
   `);
 
+	// matches table
+	db.exec(`
+    CREATE TABLE IF NOT EXISTS matches (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      opponent TEXT NOT NULL,
+      result TEXT NOT NULL,
+      referee TEXT NOT NULL,
+      date TEXT NOT NULL,
+      home INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (date('now'))
+    )
+  `);
+
 	console.log('Base de datos inicializada');
 }
 

@@ -30,7 +30,7 @@ import { fetchAvailableYears } from '@/lib/years/year';
 const navigation = [
 	{ name: 'Panel', href: '/', icon: LayoutDashboard },
 	{ name: 'Jugadores', href: '/players', icon: Users },
-	{ name: 'Estadisticas de partidos', href: '/stats', icon: ClipboardList },
+	{ name: 'Partidos', href: '/matchs', icon: ClipboardList },
 	{ name: 'Reportes', href: '/reports', icon: BarChart3 },
 	{ name: 'Reportes anuales', href: '/annual-reports', icon: CalendarRange },
 	{ name: 'Comparación de jugadores', href: '/compare', icon: GitCompareArrows },
@@ -150,11 +150,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 			<div className="flex flex-1 flex-col overflow-hidden">
 				{/* Top bar */}
 				<header className="flex h-16 items-center gap-4 border-b border-border bg-card px-4 lg:px-6 lg:hidden">
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => setMobileOpen(true)}
-					>
+					<Button variant="ghost" size="icon" onClick={() => setMobileOpen(true)}>
 						<Menu className="h-5 w-5" />
 						<span className="sr-only">Abrir menú</span>
 					</Button>
