@@ -644,7 +644,7 @@ export interface AnnualPlayerReport {
 	}[];
 }
 
-export function getPlayerAnnualReports(playerId?: number): AnnualPlayerReport[] {
+export function getPlayerAnnualReports(playerId?: number, year?: number): AnnualPlayerReport[] {
 	const players = getAllPlayers();
 	const targetPlayers = playerId ? players.filter((p) => p.id === playerId) : players;
 
@@ -667,6 +667,9 @@ export function getPlayerAnnualReports(playerId?: number): AnnualPlayerReport[] 
 
 			for (const s of playerStats) {
 				const y = new Date(s.match_date).getFullYear();
+				// Filter by year if specified
+				if (year !== undefined && y !== year) continue;
+				
 				if (!yearMap.has(y)) {
 					yearMap.set(y, {
 						goals: 0,

@@ -38,7 +38,21 @@ import {
 	type MatchPlayerWithMatchInfo,
 } from './matchs_players/match_player';
 
-import { getPlayerStats, type MatchStat } from './db';
+import { 
+	getPlayerStats, 
+	getPlayersWithStats,
+	getTeamStats,
+	getMonthlyStats,
+	getPlayerAnnualReports,
+	getPlayerComparison,
+	getPlayerYearlyComparison,
+	type MatchStat,
+	type PlayerWithStats,
+	type AnnualPlayerReport,
+	type PlayerYearlyComparison
+} from './db';
+
+import { getAvailableYears } from './years/year';
 
 import { revalidatePath } from 'next/cache';
 
@@ -288,5 +302,79 @@ export async function removeMatchPlayersByPlayer(playerId: number): Promise<Acti
 		return { success: true };
 	} catch (error: any) {
 		return { success: false, error: error.message };
+	}
+}
+
+// Stats and Reports Actions
+
+export async function fetchPlayers() {
+	try {
+		return getAllPlayers();
+	} catch (error: any) {
+		console.error('Error al obtener jugadores:', error);
+		return [];
+	}
+}
+
+export async function fetchPlayersWithStats(year?: number): Promise<PlayerWithStats[]> {
+	try {
+		return getPlayersWithStats(year);
+	} catch (error: any) {
+		console.error('Error al obtener jugadores con estadísticas:', error);
+		return [];
+	}
+}
+
+export async function fetchTeamStats(year?: number) {
+	try {
+		return getTeamStats(year);
+	} catch (error: any) {
+		console.error('Error al obtener estadísticas del equipo:', error);
+		return null;
+	}
+}
+
+export async function fetchMonthlyStats(year: number) {
+	try {
+		return getMonthlyStats(year);
+	} catch (error: any) {
+		console.error('Error al obtener estadísticas mensuales:', error);
+		return [];
+	}
+}
+
+export async function fetchPlayerAnnualReports(playerId?: number, year?: number): Promise<AnnualPlayerReport[]> {
+	try {
+		return getPlayerAnnualReports(playerId, year);
+	} catch (error: any) {
+		console.error('Error al obtener reportes anuales:', error);
+		return [];
+	}
+}
+
+export async function fetchPlayerComparison(playerIds: number[], year?: number) {
+	try {
+		return getPlayerComparison(playerIds, year);
+	} catch (error: any) {
+		console.error('Error al comparar jugadores:', error);
+		return [];
+	}
+}
+
+export async function fetchPlayerYearlyComparison(playerIds: number[]): Promise<PlayerYearlyComparison[]> {
+	try {
+		return getPlayerYearlyComparison(playerIds);
+	} catch (error: any) {
+		console.error('Error al comparar jugadores por año:', error);
+		return [];
+	}
+}
+
+export async function fetchAvailableYears(): Promise<number[]> {
+	try {
+		return getAvailableYears();
+	} catch (error: any) {
+		console.error('Error al obtener años disponibles:', error);
+		return [];
 	}
 }

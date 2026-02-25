@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Users, Target, HandHelping, AlertTriangle, Timer, Trophy } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useYear } from '@/contexts/year-context';
+import { fetchPlayersWithStats, fetchTeamStats } from '@/lib/actions';
 import {
 	BarChart,
 	Bar,
@@ -41,6 +42,26 @@ export default function DashboardContent() {
 	const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
 	const [topScorers, setTopScorers] = useState<PlayerWithStats[]>([]);
 	const [loading, setLoading] = useState(true);
+
+	useEffect(() => {
+		const loadData = async () => {
+			setLoading(true);
+			try {
+				const numYear = selectedYear ?? undefined;
+				const [stats, players] = await Promise.all([
+					fetchTeamStats(numYear),
+					fetchPlayersWithStats(numYear),
+				]);
+				setTeamStats(stats);
+				setTopScorers(players.sort((a, b) => b.total_goals - a.total_goals).slice(0, 5));
+			} catch (error) {
+				console.error('Error loading dashboard data:', error);
+			} finally {
+				setLoading(false);
+			}
+		};
+		loadData();
+	}, [selectedYear]);
 
 	if (loading || !teamStats) {
 		return (

@@ -26,7 +26,8 @@ import {
 	SelectValue,
 } from '@/components/ui/select';
 import { useYear } from '@/contexts/year-context';
-import { fetchAvailableYears } from '@/lib/years/year';
+import { fetchAvailableYears } from '@/lib/actions';
+
 const navigation = [
 	{ name: 'Panel', href: '/', icon: LayoutDashboard },
 	{ name: 'Jugadores', href: '/players', icon: Users },
@@ -42,9 +43,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 	const { selectedYear, setSelectedYear, availableYears, setAvailableYears } = useYear();
 
 	useEffect(() => {
-		fetchAvailableYears().then((years) => {
-			setAvailableYears(years);
-		});
+		// Only fetch if we don't have years yet
+		if (availableYears.length === 0) {
+			fetchAvailableYears().then((years) => {
+				setAvailableYears(years);
+			});
+		}
 	}, []);
 
 	return (
@@ -116,7 +120,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 				</nav>
 
 				<div className="border-t border-sidebar-border px-3 py-4 space-y-4">
-					{/* Selector de año */}
 					<div className="px-3">
 						<label className="text-xs text-sidebar-foreground/50 mb-2 block">Filtrar por año</label>
 						<Select

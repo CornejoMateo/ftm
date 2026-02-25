@@ -41,13 +41,15 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { fetchAllMatches, removeMatch } from '@/lib/actions';
+import { fetchAllMatches, fetchMatchesByYear, removeMatch } from '@/lib/actions';
 import MatchForm from '@/components/match-form';
 import MatchDetails from '@/components/match-details';
 import type { Match } from '@/lib/matchs/match';
 import { Badge } from '@/components/ui/badge';
+import { useYear } from '@/contexts/year-context';
 
 export default function MatchsContent() {
+	const { selectedYear } = useYear();
 	const [matches, setMatches] = useState<Match[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [search, setSearch] = useState('');
@@ -64,14 +66,14 @@ export default function MatchsContent() {
 
 	const load = useCallback(async () => {
 		setLoading(true);
-		const data = await fetchAllMatches();
+		const data = selectedYear ? await fetchMatchesByYear(selectedYear) : await fetchAllMatches();
 		setMatches(data);
 		setLoading(false);
-	}, []);
+	}, [selectedYear]);
 
 	useEffect(() => {
 		load();
-	}, [load]);
+	}, [selectedYear]); // Reload when year changes
 
 	// Reset page when search or category filter changes
 	useEffect(() => {

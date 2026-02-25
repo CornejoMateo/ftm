@@ -5,14 +5,12 @@ export interface Year {
 }
 
 export function getAvailableYears(): number[] {
-	return [2026];
-}
-
-export async function fetchAvailableYears(): Promise<number[]> {
-	try {
-		return getAvailableYears();
-	} catch (error: any) {
-		console.error('Error al obtener años disponibles:', error);
-		return [];
-	}
+	const db = getDb();
+	const stmt = db.prepare(`
+		SELECT DISTINCT strftime('%Y', date) as year 
+		FROM matches 
+		ORDER BY year DESC
+	`);
+	const rows = stmt.all() as { year: string }[];
+	return rows.map(row => parseInt(row.year));
 }

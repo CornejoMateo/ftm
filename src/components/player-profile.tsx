@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import {
 	ArrowLeft,
 	Target,
@@ -18,37 +18,28 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { fetchPlayer, fetchPlayerMatchStats } from '@/lib/actions';
+import { useYear } from '@/contexts/year-context';
+
 import type { PlayerWithAge } from '@/lib/players/player';
 import type { MatchPlayerWithMatchInfo } from '@/lib/matchs_players/match_player';
 
-export default function PlayerProfile() {
-	const params = useParams();
+type Props = {
+	player: PlayerWithAge | null;
+	initialStats: MatchPlayerWithMatchInfo[];
+};
+
+export default function PlayerProfile({ player, initialStats }: Props) {
 	const router = useRouter();
-	const playerId = Number(params.id);
-	const [player, setPlayer] = useState<PlayerWithAge | null>(null);
-	const [stats, setStats] = useState<MatchPlayerWithMatchInfo[]>([]);
-	const [loading, setLoading] = useState(true);
+	const { selectedYear } = useYear();
 
-	const load = useCallback(async () => {
-		setLoading(true);
-		const [p, s] = await Promise.all([fetchPlayer(playerId), fetchPlayerMatchStats(playerId)]);
-		setPlayer(p || null);
-		setStats(s);
-		setLoading(false);
-	}, [playerId]);
+	const stats = useMemo(() => {
+		if (!selectedYear) return initialStats;
 
-	useEffect(() => {
-		load();
-	}, [load]);
-
-	if (loading) {
-		return (
-			<div className="flex items-center justify-center py-20">
-				<div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-			</div>
-		);
-	}
+		return initialStats.filter((s) => {
+			const matchYear = new Date(s.match_date).getFullYear();
+			return matchYear === selectedYear;
+		});
+	}, [initialStats, selectedYear]);
 
 	if (!player) {
 		return (
@@ -70,10 +61,6 @@ export default function PlayerProfile() {
 		matches: stats.length,
 	};
 
-	// Calculate starter vs substitute matches
-	const starterMatches = stats.filter((s) => s.starter).length;
-	const substituteMatches = stats.filter((s) => !s.starter).length;
-
 	// Opponents with most goals
 	const goalsByOpponent = new Map<string, number>();
 	for (const s of stats) {
@@ -86,9 +73,10 @@ export default function PlayerProfile() {
 			? Array.from(goalsByOpponent.entries()).sort((a, b) => b[1] - a[1])[0]
 			: null;
 
-	// AVG goals and minutes
+	const starterMatches = stats.filter((s) => s.starter).length;
+	const substituteMatches = stats.filter((s) => !s.starter).length;
+
 	const avgGoals = totals.matches > 0 ? (totals.goals / totals.matches).toFixed(2) : '0.00';
-	const avgMinutes = totals.matches > 0 ? Math.round(totals.minutes / totals.matches) : 0;
 
 	// Most goals in a single match
 	const bestMatch =
@@ -166,7 +154,6 @@ export default function PlayerProfile() {
 			icon: Timer,
 			color: 'text-chart-5',
 		},
-		{ title: 'Promedio minutos', value: avgMinutes, icon: Timer, color: 'text-slate-500' },
 		...(bestMatch && bestMatch.goals > 0
 			? [
 					{
@@ -243,6 +230,9 @@ export default function PlayerProfile() {
 							</>
 						)}
 					</div>
+					<p className="text-xs text-muted-foreground mt-1">
+						Estadísticas {selectedYear ? `del año ${selectedYear}` : 'de todos los años'}
+					</p>
 				</div>
 			</div>
 
