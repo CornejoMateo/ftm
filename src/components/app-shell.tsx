@@ -49,7 +49,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 				setAvailableYears(years);
 			});
 		}
-	}, []);
+	}, [availableYears.length, setAvailableYears]);
 
 	return (
 		<div className="flex h-screen overflow-hidden bg-background">

@@ -64,16 +64,38 @@ export default function MatchsContent() {
 	const [detailsOpen, setDetailsOpen] = useState(false);
 	const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
 
+	useEffect(() => {
+		let mounted = true;
+		
+		async function loadMatches() {
+			setLoading(true);
+			try {
+				const data = selectedYear ? await fetchMatchesByYear(selectedYear) : await fetchAllMatches();
+				if (mounted) {
+					setMatches(data);
+					setLoading(false);
+				}
+			} catch (error) {
+				console.error('Error loading matches:', error);
+				if (mounted) {
+					setLoading(false);
+				}
+			}
+		}
+		
+		loadMatches();
+		
+		return () => {
+			mounted = false;
+		};
+	}, [selectedYear]);
+
 	const load = useCallback(async () => {
 		setLoading(true);
 		const data = selectedYear ? await fetchMatchesByYear(selectedYear) : await fetchAllMatches();
 		setMatches(data);
 		setLoading(false);
 	}, [selectedYear]);
-
-	useEffect(() => {
-		load();
-	}, [selectedYear]); // Reload when year changes
 
 	// Reset page when search or category filter changes
 	useEffect(() => {
