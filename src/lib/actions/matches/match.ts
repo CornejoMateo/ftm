@@ -1,6 +1,6 @@
 'use server';
 
-type ActionResult<T = void> = { success: true; data?: T } | { success: false; error: string };
+import type { ActionResult } from '../types';
 import { revalidatePath } from 'next/cache';
 
 import {

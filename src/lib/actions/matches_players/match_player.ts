@@ -1,6 +1,6 @@
 'use server';
 
-type ActionResult<T = void> = { success: true; data?: T } | { success: false; error: string };
+import type { ActionResult } from '../types';
 import { revalidatePath } from 'next/cache';
 
 import {
@@ -31,7 +31,7 @@ export async function fetchPlayerMatchStats(playerId: number): Promise<MatchPlay
 		return await getMatchPlayersWithMatchInfo(playerId);
 	} catch (error: any) {
 		console.error('Error al obtener estadísticas de partidos del jugador:', error);
-		return [];
+		throw error;
 	}
 }
 
@@ -164,7 +164,7 @@ export async function fetchCurrentYearMatchCount(): Promise<number> {
 		return await getCurrentYearMatchCount();
 	} catch (error: any) {
 		console.error('Error al obtener cantidad de partidos del año actual:', error);
-		return 0;
+		throw error;
 	}
 }
 
@@ -173,7 +173,7 @@ export async function fetchCurrentYearGoals(): Promise<number> {
 		return await getCurrentYearGoals();
 	} catch (error: any) {
 		console.error('Error al obtener goles del año actual:', error);
-		return 0;
+		throw error;
 	}
 }
 
@@ -182,7 +182,7 @@ export async function fetchCurrentYearAssists(): Promise<number> {
 		return await getCurrentYearAssists();
 	} catch (error: any) {
 		console.error('Error al obtener asistencias del año actual:', error);
-		return 0;
+		throw error;
 	}
 }
 
@@ -191,7 +191,7 @@ export async function fetchCurrentYearYellowCards(): Promise<number> {
 		return await getCurrentYearYellowCards();
 	} catch (error: any) {
 		console.error('Error al obtener tarjetas amarillas del año actual:', error);
-		return 0;
+		throw error;
 	}
 }
 
@@ -200,6 +200,6 @@ export async function fetchCurrentYearRedCards(): Promise<number> {
 		return await getCurrentYearRedCards();
 	} catch (error: any) {
 		console.error('Error al obtener tarjetas rojas del año actual:', error);
-		return 0;
+		throw error;
 	}
 }
