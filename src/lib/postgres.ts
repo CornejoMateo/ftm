@@ -56,7 +56,7 @@ export async function initializeDatabase(): Promise<void> {
       category TEXT,
       attendance INTEGER NOT NULL DEFAULT 0,
       active BOOLEAN NOT NULL DEFAULT true,
-      date_of_birth TEXT NOT NULL,
+      date_of_birth DATE NOT NULL,
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
     )
   `);
@@ -94,6 +94,11 @@ export async function initializeDatabase(): Promise<void> {
     )
   `);
 	initialized = true;
+}
+
+export async function getDbReady(): Promise<Pool> {
+	await initializeDatabase();
+	return getDb();
 }
 
 export async function closeDb(): Promise<void> {
