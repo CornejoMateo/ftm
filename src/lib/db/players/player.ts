@@ -1,4 +1,4 @@
-import { getDb } from '@/lib/postgres';
+import { getDbReady } from '@/lib/postgres';
 
 export interface Player {
 	id: number;
@@ -32,7 +32,7 @@ export function calculateAge(birthDate: string | Date): number {
 }
 
 export async function getAllPlayers(): Promise<PlayerWithAge[]> {
-	const db = await getDb();
+	const db = await getDbReady();
 	const result = await db.query('SELECT * FROM players ORDER BY last_name, name');
 	return result.rows.map((row: any) => ({
 		...row,
@@ -41,7 +41,7 @@ export async function getAllPlayers(): Promise<PlayerWithAge[]> {
 }
 
 export async function getActivePlayers(): Promise<PlayerWithAge[]> {
-	const db = await getDb();
+	const db = await getDbReady();
 	const result = await db.query(
 		'SELECT * FROM players WHERE active = true ORDER BY last_name, name'
 	);
@@ -52,7 +52,7 @@ export async function getActivePlayers(): Promise<PlayerWithAge[]> {
 }
 
 export async function getPlayer(id: number): Promise<PlayerWithAge | undefined> {
-	const db = await getDb();
+	const db = await getDbReady();
 	const result = await db.query('SELECT * FROM players WHERE id = $1', [id]);
 	const row = result.rows[0];
 	if (!row) return undefined;
@@ -62,7 +62,7 @@ export async function getPlayer(id: number): Promise<PlayerWithAge | undefined> 
 export async function createPlayer(
 	data: Omit<Player, 'id' | 'created_at'>
 ): Promise<PlayerWithAge> {
-	const db = await getDb();
+	const db = await getDbReady();
 
 	const checkResult = await db.query('SELECT id FROM players WHERE dni = $1', [data.dni]);
 	if (checkResult.rows.length > 0) {
@@ -96,7 +96,7 @@ export async function updatePlayer(
 	id: number,
 	data: Partial<Omit<Player, 'id' | 'created_at'>>
 ): Promise<PlayerWithAge> {
-	const db = await getDb();
+	const db = await getDbReady();
 
 	const player = await getPlayer(id);
 	if (!player) {
@@ -128,7 +128,7 @@ export async function updatePlayer(
 }
 
 export async function deletePlayer(id: number): Promise<void> {
-	const db = await getDb();
+	const db = await getDbReady();
 	const result = await db.query('DELETE FROM players WHERE id = $1', [id]);
 	if (result.rowCount === 0) {
 		throw new Error('Jugador no encontrado');

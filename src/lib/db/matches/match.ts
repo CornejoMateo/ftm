@@ -1,4 +1,4 @@
-import { getDb } from '../../postgres';
+import { getDbReady } from '../../postgres';
 
 export interface Match {
 	id: number;
@@ -14,13 +14,13 @@ export interface Match {
 export interface MatchInput extends Omit<Match, 'id' | 'created_at'> {}
 
 export async function getAllMatches(): Promise<Match[]> {
-	const db = getDb();
+	const db = await getDbReady();
 	const result = await db.query('SELECT * FROM matches ORDER BY date DESC');
 	return result.rows;
 }
 
 export async function getMatchesByYear(year: number): Promise<Match[]> {
-	const db = getDb();
+	const db = await getDbReady();
 	const result = await db.query(
 		`SELECT * FROM matches WHERE EXTRACT(YEAR FROM date::date) = $1 ORDER BY date DESC`,
 		[year]
@@ -29,13 +29,13 @@ export async function getMatchesByYear(year: number): Promise<Match[]> {
 }
 
 export async function getMatch(id: number): Promise<Match | undefined> {
-	const db = getDb();
+	const db = await getDbReady();
 	const result = await db.query('SELECT * FROM matches WHERE id = $1', [id]);
 	return result.rows[0] ?? undefined;
 }
 
 export async function createMatch(data: MatchInput): Promise<Match> {
-	const db = getDb();
+	const db = await getDbReady();
 
 	const result = await db.query(
 		`INSERT INTO matches (opponent, result, referee, date, category, home)
@@ -52,7 +52,7 @@ export async function createMatch(data: MatchInput): Promise<Match> {
 }
 
 export async function updateMatch(id: number, data: Partial<MatchInput>): Promise<Match> {
-	const db = getDb();
+	const db = await getDbReady();
 
 	const match = await getMatch(id);
 	if (!match) {
@@ -74,7 +74,7 @@ export async function updateMatch(id: number, data: Partial<MatchInput>): Promis
 }
 
 export async function deleteMatch(id: number): Promise<void> {
-	const db = getDb();
+	const db = await getDbReady();
 	const result = await db.query('DELETE FROM matches WHERE id = $1', [id]);
 	if (result.rowCount === 0) {
 		throw new Error('Partido no encontrado');

@@ -1,4 +1,4 @@
-import { getDb } from '../../postgres';
+import { getDbReady } from '../../postgres';
 
 export interface MatchPlayer {
 	id: number;
@@ -27,13 +27,13 @@ export interface MatchPlayerWithMatchInfo extends MatchPlayer {
 }
 
 export async function getAllMatchPlayers(): Promise<MatchPlayer[]> {
-	const db = getDb();
+	const db = await getDbReady();
 	const result = await db.query('SELECT * FROM match_players ORDER BY created_at DESC');
 	return result.rows;
 }
 
 export async function getMatchPlayerByYear(year: number): Promise<MatchPlayer[]> {
-	const db = getDb();
+	const db = await getDbReady();
 	const result = await db.query(
 		`SELECT mp.* FROM match_players mp
         JOIN matches m ON mp.match_id = m.id
@@ -45,13 +45,13 @@ export async function getMatchPlayerByYear(year: number): Promise<MatchPlayer[]>
 }
 
 export async function getMatchPlayersByMatch(matchId: number): Promise<MatchPlayer[]> {
-	const db = getDb();
+	const db = await getDbReady();
 	const result = await db.query('SELECT * FROM match_players WHERE match_id = $1', [matchId]);
 	return result.rows;
 }
 
 export async function getMatchPlayersByPlayer(playerId: number): Promise<MatchPlayer[]> {
-	const db = getDb();
+	const db = await getDbReady();
 	const result = await db.query(
 		'SELECT * FROM match_players WHERE player_id = $1 ORDER BY created_at DESC',
 		[playerId]
@@ -62,7 +62,7 @@ export async function getMatchPlayersByPlayer(playerId: number): Promise<MatchPl
 export async function getMatchPlayersWithMatchInfo(
 	playerId: number
 ): Promise<MatchPlayerWithMatchInfo[]> {
-	const db = getDb();
+	const db = await getDbReady();
 	const result = await db.query(
 		`SELECT
 			mp.*,
@@ -80,7 +80,7 @@ export async function getMatchPlayersWithMatchInfo(
 }
 
 export async function getMatchPlayer(id: number): Promise<MatchPlayer | undefined> {
-	const db = getDb();
+	const db = await getDbReady();
 	const result = await db.query('SELECT * FROM match_players WHERE id = $1', [id]);
 	return result.rows[0] ?? undefined;
 }
@@ -89,7 +89,7 @@ export async function getMatchPlayerByMatchAndPlayer(
 	matchId: number,
 	playerId: number
 ): Promise<MatchPlayer | undefined> {
-	const db = getDb();
+	const db = await getDbReady();
 	const result = await db.query(
 		'SELECT * FROM match_players WHERE match_id = $1 AND player_id = $2',
 		[matchId, playerId]
@@ -98,7 +98,7 @@ export async function getMatchPlayerByMatchAndPlayer(
 }
 
 export async function createMatchPlayer(data: MatchPlayerInput): Promise<MatchPlayer> {
-	const db = getDb();
+	const db = await getDbReady();
 
 	const result = await db.query(
 		`INSERT INTO match_players (
@@ -132,7 +132,7 @@ export async function updateMatchPlayer(
 	id: number,
 	data: Partial<MatchPlayerInput>
 ): Promise<MatchPlayer> {
-	const db = getDb();
+	const db = await getDbReady();
 
 	const matchPlayer = await getMatchPlayer(id);
 	if (!matchPlayer) {
@@ -154,7 +154,7 @@ export async function updateMatchPlayer(
 }
 
 export async function deleteMatchPlayer(id: number): Promise<void> {
-	const db = getDb();
+	const db = await getDbReady();
 	const result = await db.query('DELETE FROM match_players WHERE id = $1', [id]);
 	if (result.rowCount === 0) {
 		throw new Error('Relación partido-jugador no encontrada');
@@ -162,18 +162,18 @@ export async function deleteMatchPlayer(id: number): Promise<void> {
 }
 
 export async function deleteMatchPlayersByMatch(matchId: number): Promise<void> {
-	const db = getDb();
+	const db = await getDbReady();
 	await db.query('DELETE FROM match_players WHERE match_id = $1', [matchId]);
 }
 
 export async function deleteMatchPlayersByPlayer(playerId: number): Promise<void> {
-	const db = getDb();
+	const db = await getDbReady();
 	await db.query('DELETE FROM match_players WHERE player_id = $1', [playerId]);
 }
 
 export async function getCurrentYearStats() {
 	const currentYear = new Date().getFullYear();
-	const db = getDb();
+	const db = await getDbReady();
 
 	const matchResult = await db.query(
 		`SELECT COUNT(*) as count FROM matches WHERE EXTRACT(YEAR FROM date::date) = $1`,
@@ -205,7 +205,7 @@ export async function getCurrentYearStats() {
 
 export async function getCurrentYearMatchCount(): Promise<number> {
 	const currentYear = new Date().getFullYear();
-	const db = getDb();
+	const db = await getDbReady();
 	const result = await db.query(
 		`SELECT COUNT(*) as count FROM matches WHERE EXTRACT(YEAR FROM date::date) = $1`,
 		[currentYear]
@@ -215,7 +215,7 @@ export async function getCurrentYearMatchCount(): Promise<number> {
 
 export async function getCurrentYearGoals(): Promise<number> {
 	const currentYear = new Date().getFullYear();
-	const db = getDb();
+	const db = await getDbReady();
 	const result = await db.query(
 		`SELECT SUM(mp.goals) as total
 		FROM match_players mp
@@ -228,7 +228,7 @@ export async function getCurrentYearGoals(): Promise<number> {
 
 export async function getCurrentYearAssists(): Promise<number> {
 	const currentYear = new Date().getFullYear();
-	const db = getDb();
+	const db = await getDbReady();
 	const result = await db.query(
 		`SELECT SUM(mp.assists) as total
 		FROM match_players mp
@@ -241,7 +241,7 @@ export async function getCurrentYearAssists(): Promise<number> {
 
 export async function getCurrentYearYellowCards(): Promise<number> {
 	const currentYear = new Date().getFullYear();
-	const db = getDb();
+	const db = await getDbReady();
 	const result = await db.query(
 		`SELECT SUM(mp.yellow_cards) as total
 		FROM match_players mp
@@ -254,7 +254,7 @@ export async function getCurrentYearYellowCards(): Promise<number> {
 
 export async function getCurrentYearRedCards(): Promise<number> {
 	const currentYear = new Date().getFullYear();
-	const db = getDb();
+	const db = await getDbReady();
 	const result = await db.query(
 		`SELECT SUM(mp.red_cards) as total
 		FROM match_players mp

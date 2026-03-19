@@ -1,5 +1,5 @@
-import { getDb } from '../postgres';
-import { getAllPlayers, getPlayer, calculateAge } from './players/player';
+import { getDbReady } from '../postgres';
+import { getAllPlayers, getPlayer } from './players/player';
 export type { PlayerWithAge } from './players/player';
 
 export interface PlayerWithStats {
@@ -55,7 +55,7 @@ export interface PlayerYearlyComparison {
 }
 
 export async function getPlayerStats(playerId: number, year?: number) {
-	const db = getDb();
+	const db = await getDbReady();
 	if (year) {
 		const result = await db.query(
 			`SELECT
@@ -109,7 +109,7 @@ export async function getPlayersWithStats(year?: number): Promise<PlayerWithStat
 }
 
 export async function getTeamStats(year?: number) {
-	const db = getDb();
+	const db = await getDbReady();
 
 	const matchResult = year
 		? await db.query(
@@ -144,7 +144,7 @@ export async function getTeamStats(year?: number) {
 }
 
 export async function getMonthlyStats(year: number) {
-	const db = getDb();
+	const db = await getDbReady();
 	const result = await db.query(
 		`SELECT
 EXTRACT(MONTH FROM m.date::date) as month,
