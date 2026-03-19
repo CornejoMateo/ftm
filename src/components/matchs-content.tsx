@@ -94,9 +94,15 @@ export default function MatchsContent() {
 
 	const load = useCallback(async () => {
 		setLoading(true);
-		const data = selectedYear ? await fetchMatchesByYear(selectedYear) : await fetchAllMatches();
-		setMatches(data);
-		setLoading(false);
+		try {
+			const data = selectedYear ? await fetchMatchesByYear(selectedYear) : await fetchAllMatches();
+			setMatches(data);
+		} catch (error) {
+			console.error('Error loading matches:', error);
+			toast.error('Error al cargar partidos');
+		} finally {
+			setLoading(false);
+		}
 	}, [selectedYear]);
 
 	// Reset page when search or category filter changes
@@ -148,14 +154,20 @@ export default function MatchsContent() {
 
 	async function handleDelete() {
 		if (!deleteId) return;
-		const result = await removeMatch(deleteId);
-		if (result.success) {
-			toast.success('Partido eliminado exitosamente');
-			load();
-		} else {
-			toast.error('Error al eliminar partido: ' + result.error);
+		try {
+			const result = await removeMatch(deleteId);
+			if (result.success) {
+				toast.success('Partido eliminado exitosamente');
+				await load();
+			} else {
+				toast.error('Error al eliminar partido: ' + result.error);
+			}
+		} catch (error) {
+			const message = error instanceof Error ? error.message : 'Error desconocido';
+			toast.error(`Error al eliminar partido: ${message}`);
+		} finally {
+			setDeleteId(null);
 		}
-		setDeleteId(null);
 	}
 
 	function sortIndicator(field: 'date' | 'opponent') {

@@ -42,6 +42,7 @@ import {
 	TrendingDown,
 	Minus,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { fetchPlayerAnnualReports } from '@/lib/actions/actions';
 import { fetchAllPlayers } from '@/lib/actions/players/player';
 import type { AnnualPlayerReport } from '@/lib/db/db';
@@ -57,16 +58,22 @@ export default function AnnualReportsContent() {
 
 	const load = useCallback(async () => {
 		setLoading(true);
-		const [p, r] = await Promise.all([
-			fetchAllPlayers(),
-			fetchPlayerAnnualReports(
-				selectedPlayer === 'all' ? undefined : Number(selectedPlayer),
-				selectedYear ?? undefined
-			),
-		]);
-		//setPlayers(p);
-		setReports(r);
-		setLoading(false);
+		try {
+			const [p, r] = await Promise.all([
+				fetchAllPlayers(),
+				fetchPlayerAnnualReports(
+					selectedPlayer === 'all' ? undefined : Number(selectedPlayer),
+					selectedYear ?? undefined
+				),
+			]);
+			//setPlayers(p);
+			setReports(r);
+		} catch (error) {
+			console.error('Error loading annual reports:', error);
+			toast.error('Error al cargar reportes anuales');
+		} finally {
+			setLoading(false);
+		}
 	}, [selectedPlayer, selectedYear]);
 
 	useEffect(() => {

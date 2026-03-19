@@ -44,7 +44,6 @@ import { fetchAllPlayers, removePlayer } from '@/lib/actions/players/player';
 import PlayerForm from '@/components/player-form';
 import type { PlayerWithAge } from '@/lib/db/players/player';
 import { Badge } from '@/components/ui/badge';
-import { init } from 'next/dist/compiled/webpack/webpack';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -63,9 +62,15 @@ export default function PlayersContent({ initialPlayers }: { initialPlayers: Pla
 
 	const load = useCallback(async () => {
 		setLoading(true);
-		const data = await fetchAllPlayers();
-		setPlayers(data);
-		setLoading(false);
+		try {
+			const data = await fetchAllPlayers();
+			setPlayers(data);
+		} catch (error) {
+			const message = error instanceof Error ? error.message : 'Error desconocido';
+			toast.error(`Error al cargar jugadores: ${message}`);
+		} finally {
+			setLoading(false);
+		}
 	}, []);
 
 	// Extract unique categories for filter dropdown
@@ -120,14 +125,20 @@ export default function PlayersContent({ initialPlayers }: { initialPlayers: Pla
 
 	async function handleDelete() {
 		if (!deleteId) return;
-		const result = await removePlayer(deleteId);
-		if (result.success) {
-			toast.success('Jugador eliminado exitosamente');
-			load();
-		} else {
-			toast.error('Error al eliminar jugador: ' + result.error);
+		try {
+			const result = await removePlayer(deleteId);
+			if (result.success) {
+				toast.success('Jugador eliminado exitosamente');
+				await load();
+			} else {
+				toast.error('Error al eliminar jugador: ' + result.error);
+			}
+		} catch (error) {
+			const message = error instanceof Error ? error.message : 'Error desconocido';
+			toast.error(`Error al eliminar jugador: ${message}`);
+		} finally {
+			setDeleteId(null);
 		}
-		setDeleteId(null);
 	}
 
 	function sortIndicator(field: 'name' | 'age' | 'created') {
