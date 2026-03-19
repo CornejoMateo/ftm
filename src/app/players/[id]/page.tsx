@@ -1,6 +1,9 @@
 import AppShell from '@/components/app-shell';
 import PlayerProfile from '@/components/player-profile';
-import { fetchPlayer, fetchPlayerMatchStats } from '@/lib/actions';
+import { fetchPlayer } from '@/lib/actions/players/player';
+import { fetchPlayerMatchStats } from '@/lib/actions/matches_players/match_player';
+
+export const dynamic = 'force-dynamic';
 
 export default async function PlayerDetailPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;

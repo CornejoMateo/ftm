@@ -40,16 +40,16 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import type { Match } from '@/lib/matchs/match';
+import type { Match } from '@/lib/db/matches/match';
 import {
 	fetchMatchPlayersByMatch,
-	fetchAllPlayers,
 	addMatchPlayer,
 	editMatchPlayer,
 	removeMatchPlayer,
-} from '@/lib/actions';
-import type { MatchPlayer, MatchPlayerInput } from '@/lib/matchs_players/match_player';
-import type { Player } from '@/lib/players/player';
+} from '@/lib/actions/matches_players/match_player';
+import { fetchAllPlayers } from '@/lib/actions/players/player';
+import type { MatchPlayer, MatchPlayerInput } from '@/lib/db/matches_players/match_player';
+import type { Player } from '@/lib/db/players/player';
 import { getMatchResultType, getResultColor } from '@/utils/match';
 import { toast } from 'sonner';
 

@@ -1,0 +1,33 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: dlay_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mateo
+      POSTGRES_PASSWORD: ftm2026
+      POSTGRES_DB: ftm
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mateo -d ftm"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    container_name: dlay_app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://mateo:ftm2026@postgres:5432/ftm
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

@@ -15,8 +15,8 @@ import {
 	DialogDescription,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { addMatch, editMatch } from '@/lib/actions';
-import type { Match } from '@/lib/matchs/match';
+import { addMatch, editMatch } from '@/lib/actions/matches/match';
+import type { Match } from '@/lib/db/matches/match';
 
 interface MatchFormProps {
 	open: boolean;

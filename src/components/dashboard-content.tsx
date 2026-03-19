@@ -1,21 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Users, Target, HandHelping, AlertTriangle, Timer, Trophy } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useYear } from '@/contexts/year-context';
-import { fetchPlayersWithStats, fetchTeamStats } from '@/lib/actions';
-import {
-	BarChart,
-	Bar,
-	XAxis,
-	YAxis,
-	CartesianGrid,
-	Tooltip,
-	ResponsiveContainer,
-	Legend,
-} from 'recharts';
-import type { PlayerWithStats } from '@/lib/db';
+import { cn } from '@/lib/utils';
+import type { PlayerWithStats } from '@/lib/db/db';
+import { teamStatCardsConfig } from '@/constants/dashboard/team-stats';
+import { fetchMonthlyStats } from '@/lib/actions/actions';
 
 interface TeamStats {
 	total_matches: number;
@@ -41,74 +32,34 @@ export default function DashboardContent() {
 	const [teamStats, setTeamStats] = useState<TeamStats | null>(null);
 	const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
 	const [topScorers, setTopScorers] = useState<PlayerWithStats[]>([]);
+	const [topAssisters, setTopAssisters] = useState<PlayerWithStats[]>([]);
 	const [loading, setLoading] = useState(true);
 
+	const statCards = teamStatCardsConfig.map((config) => ({
+		...config,
+		value: teamStats ? teamStats[config.key as keyof TeamStats] : 0,
+	}));
+
 	useEffect(() => {
-		const loadData = async () => {
-			setLoading(true);
-			try {
-				const numYear = selectedYear ?? undefined;
-				const [stats, players] = await Promise.all([
-					fetchTeamStats(numYear),
-					fetchPlayersWithStats(numYear),
-				]);
-				setTeamStats(stats);
-				setTopScorers(players.sort((a, b) => b.total_goals - a.total_goals).slice(0, 5));
-			} catch (error) {
-				console.error('Error loading dashboard data:', error);
-			} finally {
+		setLoading(true);
+		fetchMonthlyStats(selectedYear || new Date().getFullYear()).then(
+			({ teamStats, monthlyStats, topScorers, topAssisters }) => {
+				setTeamStats(teamStats);
+				setMonthlyData(monthlyStats);
+				setTopScorers(topScorers);
+				setTopAssisters(topAssisters);
 				setLoading(false);
 			}
-		};
-		loadData();
+		);
 	}, [selectedYear]);
 
-	if (loading || !teamStats) {
+	if (loading) {
 		return (
 			<div className="flex items-center justify-center py-20">
 				<div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
 			</div>
 		);
 	}
-
-	const statCards = [
-		{
-			title: 'Cantidad de partidos',
-			value: teamStats.total_matches,
-			icon: Trophy,
-			color: 'text-primary',
-		},
-		{
-			title: 'Cantidad de jugadores',
-			value: teamStats.total_players,
-			icon: Users,
-			color: 'text-chart-2',
-		},
-		{
-			title: 'Goles marcados',
-			value: teamStats.total_goals,
-			icon: Target,
-			color: 'text-chart-3',
-		},
-		{
-			title: 'Total asistencias',
-			value: teamStats.total_assists,
-			icon: HandHelping,
-			color: 'text-chart-1',
-		},
-		{
-			title: 'Tarjetas amarillas',
-			value: teamStats.total_yellow_cards,
-			icon: AlertTriangle,
-			color: 'text-chart-3',
-		},
-		{
-			title: 'Minutos jugados',
-			value: teamStats.total_minutes.toLocaleString(),
-			icon: Timer,
-			color: 'text-chart-5',
-		},
-	];
 
 	return (
 		<div className="flex flex-col gap-6">
@@ -204,30 +155,36 @@ export default function DashboardContent() {
 					</CardHeader>
 					<CardContent>
 						<div className="flex flex-col gap-3">
-							{topScorers.map((player, i) => (
-								<div
-									key={player.id}
-									className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2"
-								>
-									<div className="flex items-center gap-3">
-										<span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-											{i + 1}
-										</span>
-										<div>
-											<p className="text-sm font-medium text-foreground">
-												{player.nombre} {player.apellido}
-											</p>
-											<p className="text-xs text-muted-foreground">
-												{player.matches_played} partidos
-											</p>
+							{topScorers.length === 0 ? (
+								<p className="text-sm text-muted-foreground text-center py-4">
+									No hay datos de goleadores
+								</p>
+							) : (
+								topScorers.map((player, i) => (
+									<div
+										key={player.id}
+										className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2"
+									>
+										<div className="flex items-center gap-3">
+											<span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+												{i + 1}
+											</span>
+											<div>
+												<p className="text-sm font-medium text-foreground">
+													{player.name} {player.last_name}
+												</p>
+												<p className="text-xs text-muted-foreground">
+													{player.matches_played} partidos
+												</p>
+											</div>
+										</div>
+										<div className="text-right">
+											<p className="text-lg font-bold text-primary">{player.total_goals}</p>
+											<p className="text-xs text-muted-foreground">goles</p>
 										</div>
 									</div>
-									<div className="text-right">
-										<p className="text-lg font-bold text-primary">{player.total_goals}</p>
-										<p className="text-xs text-muted-foreground">goles</p>
-									</div>
-								</div>
-							))}
+								))
+							)}
 						</div>
 					</CardContent>
 				</Card>
@@ -239,10 +196,12 @@ export default function DashboardContent() {
 					</CardHeader>
 					<CardContent>
 						<div className="flex flex-col gap-3">
-							{[...topScorers]
-								.sort((a, b) => b.total_assists - a.total_assists)
-								.slice(0, 5)
-								.map((player, i) => (
+							{topAssisters.length === 0 ? (
+								<p className="text-sm text-muted-foreground text-center py-4">
+									No hay datos de asistentes
+								</p>
+							) : (
+								topAssisters.map((player, i) => (
 									<div
 										key={player.id}
 										className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2"
@@ -253,7 +212,7 @@ export default function DashboardContent() {
 											</span>
 											<div>
 												<p className="text-sm font-medium text-foreground">
-													{player.nombre} {player.apellido}
+													{player.name} {player.last_name}
 												</p>
 												<p className="text-xs text-muted-foreground">
 													{player.matches_played} partidos
@@ -265,15 +224,12 @@ export default function DashboardContent() {
 											<p className="text-xs text-muted-foreground">asistencias</p>
 										</div>
 									</div>
-								))}
+								))
+							)}
 						</div>
 					</CardContent>
 				</Card>
 			</div>
 		</div>
 	);
-}
-
-function cn(...classes: (string | undefined | false)[]) {
-	return classes.filter(Boolean).join(' ');
 }

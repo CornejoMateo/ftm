@@ -42,9 +42,10 @@ import {
 	TrendingDown,
 	Minus,
 } from 'lucide-react';
-import { fetchPlayerAnnualReports, fetchPlayers } from '@/lib/actions';
-import type { AnnualPlayerReport } from '@/lib/db';
-import type { PlayerWithAge } from '@/lib/db';
+import { fetchPlayerAnnualReports } from '@/lib/actions/actions';
+import { fetchAllPlayers } from '@/lib/actions/players/player';
+import type { AnnualPlayerReport } from '@/lib/db/db';
+import type { PlayerWithAge } from '@/lib/db/db';
 import { useYear } from '@/contexts/year-context';
 
 export default function AnnualReportsContent() {
@@ -57,7 +58,7 @@ export default function AnnualReportsContent() {
 	const load = useCallback(async () => {
 		setLoading(true);
 		const [p, r] = await Promise.all([
-			fetchPlayers(),
+			fetchAllPlayers(),
 			fetchPlayerAnnualReports(
 				selectedPlayer === 'all' ? undefined : Number(selectedPlayer),
 				selectedYear ?? undefined
@@ -150,7 +151,7 @@ export default function AnnualReportsContent() {
 						<SelectItem value="all">All Players</SelectItem>
 						{players.map((p) => (
 							<SelectItem key={p.id} value={String(p.id)}>
-								{p.nombre} {p.apellido}
+								{p.name} {p.last_name}
 							</SelectItem>
 						))}
 					</SelectContent>

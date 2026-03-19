@@ -20,8 +20,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useYear } from '@/contexts/year-context';
 
-import type { PlayerWithAge } from '@/lib/players/player';
-import type { MatchPlayerWithMatchInfo } from '@/lib/matchs_players/match_player';
+import type { PlayerWithAge } from '@/lib/db/players/player';
+import type { MatchPlayerWithMatchInfo } from '@/lib/db/matches_players/match_player';
 
 type Props = {
 	player: PlayerWithAge | null;

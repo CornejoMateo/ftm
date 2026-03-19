@@ -40,9 +40,9 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { fetchAllPlayers, removePlayer } from '@/lib/actions';
+import { fetchAllPlayers, removePlayer } from '@/lib/actions/players/player';
 import PlayerForm from '@/components/player-form';
-import type { PlayerWithAge } from '@/lib/players/player';
+import type { PlayerWithAge } from '@/lib/db/players/player';
 import { Badge } from '@/components/ui/badge';
 import { init } from 'next/dist/compiled/webpack/webpack';
 

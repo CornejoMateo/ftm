@@ -41,10 +41,10 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { fetchAllMatches, fetchMatchesByYear, removeMatch } from '@/lib/actions';
+import { fetchAllMatches, fetchMatchesByYear, removeMatch } from '@/lib/actions/matches/match';
 import MatchForm from '@/components/match-form';
 import MatchDetails from '@/components/match-details';
-import type { Match } from '@/lib/matchs/match';
+import type { Match } from '@/lib/db/matches/match';
 import { Badge } from '@/components/ui/badge';
 import { useYear } from '@/contexts/year-context';
 
@@ -66,11 +66,13 @@ export default function MatchsContent() {
 
 	useEffect(() => {
 		let mounted = true;
-		
+
 		async function loadMatches() {
 			setLoading(true);
 			try {
-				const data = selectedYear ? await fetchMatchesByYear(selectedYear) : await fetchAllMatches();
+				const data = selectedYear
+					? await fetchMatchesByYear(selectedYear)
+					: await fetchAllMatches();
 				if (mounted) {
 					setMatches(data);
 					setLoading(false);
@@ -82,9 +84,9 @@ export default function MatchsContent() {
 				}
 			}
 		}
-		
+
 		loadMatches();
-		
+
 		return () => {
 			mounted = false;
 		};

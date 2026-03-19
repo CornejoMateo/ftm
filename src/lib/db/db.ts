@@ -54,10 +54,6 @@ export interface PlayerYearlyComparison {
 	}[];
 }
 
-// ============================================
-// STATS FUNCTIONS
-// ============================================
-
 export async function getPlayerStats(playerId: number, year?: number) {
 	const db = getDb();
 	if (year) {

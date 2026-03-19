@@ -23,8 +23,8 @@ import {
 	DialogDescription,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { addPlayer, editPlayer } from '@/lib/actions';
-import type { PlayerWithAge } from '@/lib/players/player';
+import { addPlayer, editPlayer } from '@/lib/actions/players/player';
+import type { PlayerWithAge } from '@/lib/db/players/player';
 import { playerPositions } from '@/constants/player-positions';
 
 interface PlayerFormProps {

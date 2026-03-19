@@ -26,16 +26,8 @@ import {
 	SelectValue,
 } from '@/components/ui/select';
 import { useYear } from '@/contexts/year-context';
-import { fetchAvailableYears } from '@/lib/actions';
-
-const navigation = [
-	{ name: 'Panel', href: '/', icon: LayoutDashboard },
-	{ name: 'Jugadores', href: '/players', icon: Users },
-	{ name: 'Partidos', href: '/matchs', icon: ClipboardList },
-	{ name: 'Reportes', href: '/reports', icon: BarChart3 },
-	{ name: 'Reportes anuales', href: '/annual-reports', icon: CalendarRange },
-	{ name: 'Comparación de jugadores', href: '/compare', icon: GitCompareArrows },
-];
+import { fetchAvailableYears } from '@/lib/actions/actions';
+import { navigation } from '@/constants/navigation';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
 	const pathname = usePathname();

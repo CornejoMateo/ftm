@@ -1,40 +1,40 @@
-import React from "react"
-import type { Metadata, Viewport } from "next"
-import { Inter, JetBrains_Mono } from "next/font/google"
-import { Toaster } from "sonner"
-import { YearProvider } from "@/contexts/year-context"
-import "./globals.css"
+import { StartupRunner } from '@/components/startup-runner';
+import type { Metadata, Viewport } from 'next';
+import { Inter, JetBrains_Mono } from 'next/font/google';
+import { Toaster } from 'sonner';
+import { YearProvider } from '@/contexts/year-context';
+import '@/styles/globals.css';
 
-const _inter = Inter({ subsets: ["latin"] })
-const _jetbrainsMono = JetBrains_Mono({ subsets: ["latin"] })
+const _inter = Inter({ subsets: ['latin'] });
+const _jetbrainsMono = JetBrains_Mono({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "Futbol Manager",
-  description:
-    "Aplicación para gestionar tu equipo de futbol",
-  icons: {
-    icon: "/icons/icon.png",
-    apple: "/icons/icon.png",
-  },
-}
+	title: 'Futbol Manager',
+	description: 'Aplicación para gestionar tu equipo de futbol',
+	icons: {
+		icon: '/icons/icon.png',
+		apple: '/icons/icon.png',
+	},
+};
 
 export const viewport: Viewport = {
-  themeColor: "#1a8a52",
-}
+	themeColor: '#1a8a52',
+};
 
-export default function RootLayout({
-  children,
+export default async function RootLayout({
+	children,
 }: Readonly<{
-  children: React.ReactNode
+	children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      <body className="font-sans antialiased">
-        <YearProvider>
-          {children}
-          <Toaster richColors position="top-right" />
-        </YearProvider>
-      </body>
-    </html>
-  )
+	return (
+		<html lang="en">
+			<body className="font-sans antialiased">
+				<StartupRunner />
+				<YearProvider>
+					{children}
+					<Toaster richColors position="top-right" />
+				</YearProvider>
+			</body>
+		</html>
+	);
 }
