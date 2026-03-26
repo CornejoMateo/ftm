@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef, type ChangeEvent } from 'react';
 import Link from 'next/link';
-import { Plus, Pencil, Trash2, Search, Eye } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Eye, FileSpreadsheet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -40,10 +40,11 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { fetchAllPlayers, removePlayer } from '@/lib/actions/players/player';
-import PlayerForm from '@/components/player-form';
+import { addPlayer, fetchAllPlayers, removePlayer } from '@/lib/actions/players/player';
+import PlayerForm from '@/components/players/player-form';
 import type { PlayerWithAge } from '@/lib/db/players/player';
 import { Badge } from '@/components/ui/badge';
+import { formatDateForDb } from '@/utils/format-date';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -59,6 +60,131 @@ export default function PlayersContent({ initialPlayers }: { initialPlayers: Pla
 	const [sortBy, setSortBy] = useState<'name' | 'age' | 'created'>('name');
 	const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 	const [currentPage, setCurrentPage] = useState(1);
+	const [importing, setImporting] = useState(false);
+	const fileInputRef = useRef<HTMLInputElement>(null);
+
+	function parseBirthDate(rawDate: any): string {
+		if (!rawDate) return '';
+
+		// Excel number
+		if (typeof rawDate === 'number') {
+			const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+			const date = new Date(excelEpoch.getTime() + rawDate * 86400000);
+
+			return date.toISOString().split('T')[0]; // YYYY-MM-DD
+		}
+
+		// Date object
+		if (rawDate instanceof Date) {
+			return rawDate.toISOString().split('T')[0]; //YYYY-MM-DD
+		}
+
+		// string dd/mm/yyyy
+		const text = String(rawDate).trim();
+		const [day, month, year] = text.split('/');
+
+		if (!day || !month || !year) {
+			throw new Error(`Fecha inválida: ${rawDate}`);
+		}
+
+		return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+	}
+
+	async function handleImportFile(event: ChangeEvent<HTMLInputElement>) {
+		const file = event.target.files?.[0];
+		if (!file) return;
+
+		setImporting(true);
+		try {
+			const XLSX = await import('xlsx');
+			const fileBuffer = await file.arrayBuffer();
+			const workbook = XLSX.read(fileBuffer, { type: 'array' });
+			const firstSheetName = workbook.SheetNames[0];
+
+			if (!firstSheetName) {
+				toast.error('El archivo no contiene hojas');
+				return;
+			}
+
+			const rows = XLSX.utils.sheet_to_json<(string | number | Date)[]>(
+				workbook.Sheets[firstSheetName],
+				{ header: 1, defval: '' }
+			);
+
+			let imported = 0;
+			let skipped = 0;
+
+			for (let index = 0; index < rows.length; index++) {
+				const row = rows[index];
+				if (!Array.isArray(row)) continue;
+
+				const rawLastName = row[0] ?? '';
+				const rawName = row[1] ?? '';
+				const rawCategory = row[2] ?? '';
+				const rawDate = row[3] ?? '';
+				const rawDni = row[4] ?? '';
+				const rawPosition = row[5] ?? '';
+				const rawAttendance = row[6] ?? '';
+
+				const lastName = String(rawLastName).trim();
+				const name = String(rawName).trim();
+				const category = String(rawCategory).trim();
+				const dateText = String(rawDate).trim();
+				const dni = String(rawDni).trim();
+				const position = String(rawPosition).trim();
+				const attendanceText = String(rawAttendance).trim();
+				const attendance = Number.parseInt(attendanceText, 10);
+
+				console.log({
+					index,
+					name,
+					lastName,
+					dni,
+					date: rawDate,
+					parsed: parseBirthDate(rawDate),
+				});
+
+				if (!lastName && !name && !category && !dateText && !dni && !position && !attendanceText) {
+					break;
+				}
+
+				const result = await addPlayer({
+					last_name: lastName || '',
+					name: name || '',
+					category: category || '',
+					date_of_birth: parseBirthDate(rawDate),
+					dni: dni || '',
+					position: position || null,
+					attendance: Number.isNaN(attendance) ? 0 : attendance,
+					active: true,
+				});
+
+				if (result.success) {
+					imported++;
+				} else {
+					skipped++;
+				}
+			}
+
+			if (imported > 0) {
+				await load();
+			}
+
+			if (imported === 0 && skipped === 0) {
+				toast.info('No se encontraron filas para importar');
+			} else if (skipped > 0) {
+				toast.success(`Importación finalizada: ${imported} importados, ${skipped} omitidos`);
+			} else {
+				toast.success(`Se importaron ${imported} jugadores`);
+			}
+		} catch (error) {
+			const message = error instanceof Error ? error.message : 'Error desconocido';
+			toast.error(`Error al importar archivo: ${message}`);
+		} finally {
+			setImporting(false);
+			event.target.value = '';
+		}
+	}
 
 	const load = useCallback(async () => {
 		setLoading(true);
@@ -162,15 +288,32 @@ export default function PlayersContent({ initialPlayers }: { initialPlayers: Pla
 						<h3 className="text-2xl font-bold text-foreground">Jugadores</h3>
 						<p className="text-sm text-muted-foreground">{players.length} jugadores registrados</p>
 					</div>
-					<Button
-						onClick={() => {
-							setEditingPlayer(null);
-							setFormOpen(true);
-						}}
-					>
-						<Plus className="mr-2 h-4 w-4" />
-						Agregar jugador
-					</Button>
+					<div className="flex flex-col gap-2 sm:flex-row">
+						<input
+							ref={fileInputRef}
+							type="file"
+							accept=".xlsx,.xls"
+							onChange={handleImportFile}
+							className="hidden"
+						/>
+						<Button
+							variant="outline"
+							onClick={() => fileInputRef.current?.click()}
+							disabled={importing}
+						>
+							<FileSpreadsheet className="mr-2 h-4 w-4" />
+							{importing ? 'Importando...' : 'Importar jugadores'}
+						</Button>
+						<Button
+							onClick={() => {
+								setEditingPlayer(null);
+								setFormOpen(true);
+							}}
+						>
+							<Plus className="mr-2 h-4 w-4" />
+							Agregar jugador
+						</Button>
+					</div>
 				</div>
 
 				<div className="flex flex-col gap-3 sm:flex-row">

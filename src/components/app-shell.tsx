@@ -37,9 +37,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 	useEffect(() => {
 		// Only fetch if we don't have years yet
 		if (availableYears.length === 0) {
-			fetchAvailableYears().then((years) => {
-				setAvailableYears(years);
-			});
+			fetchAvailableYears()
+				.then((years) => {
+					setAvailableYears(years);
+				})
+				.catch((error) => {
+					console.error('Error loading available years:', error);
+				});
 		}
 	}, [availableYears.length, setAvailableYears]);
 

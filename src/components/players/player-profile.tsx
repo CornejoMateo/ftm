@@ -19,9 +19,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useYear } from '@/contexts/year-context';
-
 import type { PlayerWithAge } from '@/lib/db/players/player';
 import type { MatchPlayerWithMatchInfo } from '@/lib/db/matches_players/match_player';
+import { formatDateForDisplay } from '@/utils/format-date';
 
 type Props = {
 	player: PlayerWithAge | null;
@@ -125,9 +125,6 @@ export default function PlayerProfile({ player, initialStats }: Props) {
 		entry.goals += s.goals;
 		entry.assists += s.assists;
 	}
-	const chartData = Array.from(monthlyMap.entries())
-		.sort(([a], [b]) => a.localeCompare(b))
-		.map(([, v]) => v);
 
 	const summaryCards = [
 		{ title: 'Partidos jugados', value: totals.matches, icon: Trophy, color: 'text-primary' },
@@ -222,7 +219,7 @@ export default function PlayerProfile({ player, initialStats }: Props) {
 						<span>|</span>
 						<span>Edad: {player.age} años</span>
 						<span>|</span>
-						<span>Nacimiento: {player.date_of_birth}</span>
+						<span>Nacimiento: {formatDateForDisplay(player.date_of_birth)}</span>
 						{player.position && (
 							<>
 								<span>|</span>
