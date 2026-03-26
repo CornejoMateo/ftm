@@ -4,7 +4,7 @@ export interface Player {
 	id: number;
 	name: string;
 	last_name: string;
-	dni: string;
+	dni: string | null;
 	position: string | null;
 	active: boolean;
 	date_of_birth: string;
@@ -64,9 +64,12 @@ export async function createPlayer(
 ): Promise<PlayerWithAge> {
 	const db = await getDbReady();
 
-	const checkResult = await db.query('SELECT id FROM players WHERE dni = $1', [data.dni]);
-	if (checkResult.rows.length > 0) {
-		throw new Error('Ya existe un jugador con este DNI');
+	if (data.dni) {
+		const checkResult = await db.query('SELECT id FROM players WHERE dni = $1', [data.dni]);
+
+		if (checkResult.rows.length > 0) {
+			throw new Error('Ya existe un jugador con este DNI');
+		}
 	}
 
 	const result = await db.query(

@@ -1,5 +1,5 @@
 import AppShell from '@/components/app-shell';
-import PlayersContent from '@/components/players-content';
+import PlayersContent from '@/components/players/players-content';
 import { fetchAllPlayers } from '@/lib/actions/players/player';
 
 export const dynamic = 'force-dynamic';

@@ -1,6 +1,7 @@
 import { Pool } from 'pg';
 
 let pool: Pool | null = null;
+let initPromise: Promise<void> | null = null;
 
 function getConnectionConfig() {
 	const connectionString = process.env.DATABASE_URL?.trim();
@@ -39,61 +40,62 @@ export function getDb(): Pool {
 	return pool;
 }
 
-let initialized = false;
-
 export async function initializeDatabase(): Promise<void> {
-	if (initialized) return;
+	if (initPromise) return initPromise;
 
-	const db = getDb();
-	// players table
-	await db.query(`
-    CREATE TABLE IF NOT EXISTS players (
-      id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL,
-      last_name TEXT NOT NULL,
-      dni TEXT NOT NULL UNIQUE,
-      position TEXT,
-      category TEXT,
-      attendance INTEGER NOT NULL DEFAULT 0,
-      active BOOLEAN NOT NULL DEFAULT true,
-      date_of_birth DATE NOT NULL,
-      created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-    )
-  `);
+	initPromise = (async () => {
+		const db = getDb();
+		// players table
+		await db.query(`
+			CREATE TABLE IF NOT EXISTS players (
+			id SERIAL PRIMARY KEY,
+			name TEXT,
+			last_name TEXT,
+			dni TEXT,
+			position TEXT,
+			category TEXT,
+			attendance INTEGER DEFAULT 0,
+			active BOOLEAN DEFAULT true,
+			date_of_birth TEXT,
+			created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+			)
+		`);
 
-	// matches table
-	await db.query(`
-    CREATE TABLE IF NOT EXISTS matches (
-      id SERIAL PRIMARY KEY,
-      opponent TEXT NOT NULL,
-      result TEXT NOT NULL,
-      referee TEXT NOT NULL,
-      date DATE NOT NULL,
-      category TEXT,
-      home BOOLEAN NOT NULL DEFAULT false,
-      created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-    )
-  `);
+		// matches table
+		await db.query(`
+			CREATE TABLE IF NOT EXISTS matches (
+			id SERIAL PRIMARY KEY,
+			opponent TEXT,
+			result TEXT,
+			referee TEXT,
+			date TEXT,
+			category TEXT,
+			home BOOLEAN DEFAULT false,
+			created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+			)
+		`);
 
-	// match_players table
-	await db.query(`
-    CREATE TABLE IF NOT EXISTS match_players (
-      id SERIAL PRIMARY KEY,
-      match_id INTEGER NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
-      player_id INTEGER NOT NULL REFERENCES players(id) ON DELETE CASCADE,
-      minutes_played INTEGER NOT NULL DEFAULT 0,
-      goals INTEGER NOT NULL DEFAULT 0,
-      assists INTEGER NOT NULL DEFAULT 0,
-      yellow_cards INTEGER NOT NULL DEFAULT 0,
-      red_cards INTEGER NOT NULL DEFAULT 0,
-      starter BOOLEAN NOT NULL DEFAULT true,
-      minute_login INTEGER,
-      calification INTEGER,
-      created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-      UNIQUE(match_id, player_id)
-    )
-  `);
-	initialized = true;
+		// match_players table
+		await db.query(`
+			CREATE TABLE IF NOT EXISTS match_players (
+			id SERIAL PRIMARY KEY,
+			match_id INTEGER NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
+			player_id INTEGER NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+			minutes_played INTEGER DEFAULT 0,
+			goals INTEGER DEFAULT 0,
+			assists INTEGER DEFAULT 0,
+			yellow_cards INTEGER DEFAULT 0,
+			red_cards INTEGER DEFAULT 0,
+			starter BOOLEAN DEFAULT true,
+			minute_login INTEGER,
+			calification INTEGER,
+			created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+			UNIQUE(match_id, player_id)
+			)
+		`);
+	})();
+
+	await initPromise;
 }
 
 export async function getDbReady(): Promise<Pool> {

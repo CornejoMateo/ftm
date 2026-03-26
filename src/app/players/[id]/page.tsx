@@ -1,5 +1,5 @@
 import AppShell from '@/components/app-shell';
-import PlayerProfile from '@/components/player-profile';
+import PlayerProfile from '@/components/players/player-profile';
 import { fetchPlayer } from '@/lib/actions/players/player';
 import { fetchPlayerMatchStats } from '@/lib/actions/matches_players/match_player';
 
