@@ -23,6 +23,10 @@ export async function fetchAllPlayers() {
 }
 
 export async function fetchPlayer(id: number) {
+	if (!Number.isInteger(id) || id <= 0) {
+		return undefined;
+	}
+
 	try {
 		return await getPlayer(id);
 	} catch (error: any) {

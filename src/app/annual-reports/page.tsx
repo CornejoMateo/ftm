@@ -4,7 +4,7 @@ import AnnualReportsContent from "@/components/annual-reports-content"
 export default function AnnualReportsPage() {
   return (
     <AppShell>
-{/*       <AnnualReportsContent />
- */}    Vamos Correo</AppShell>
+      <AnnualReportsContent />
+    </AppShell>
   )
 }

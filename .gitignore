@@ -52,8 +52,3 @@ Thumbs.db
 *.swp
 *.swo
 *~
-
-# Lock files (opcional, según tu gestor de paquetes)
-package-lock.json
-src/pnpm-lock.yaml
-electron-app/package-lock.json

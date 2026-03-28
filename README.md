@@ -1,137 +1,165 @@
 # FTM - Football Team Manager
 
-Aplicación de gestión de equipos de fútbol construida con Next.js y Electron.
+FTM is a football team management application built with Next.js and wrapped in Electron for desktop usage.
 
-## 📁 Estructura del Proyecto
+It includes player management, match tracking, reports, comparisons, and annual summaries.
 
-```
+## Features
+
+- Player management (create, edit, delete)
+- Match and per-player match statistics tracking
+- Dashboard and reports views
+- Player comparison tools
+- Annual reports
+- Responsive UI built with Tailwind CSS and shadcn/ui
+
+## Tech Stack
+
+- Frontend: Next.js 15, React 19, TypeScript
+- UI: Tailwind CSS, shadcn/ui, Radix UI
+- Charts: Recharts
+- Desktop: Electron
+- Database: PostgreSQL (via node-postgres)
+- Spreadsheet import: xlsx
+
+## Project Structure
+
+```text
 ftm/
-├── src/                    # Aplicación Next.js
-│   ├── app/               # Páginas de la aplicación (App Router)
-│   │   ├── page.tsx       # Dashboard principal
-│   │   ├── players/       # Gestión de jugadores
-│   │   ├── stats/         # Estadísticas
-│   │   ├── reports/       # Reportes
-│   │   ├── compare/       # Comparación de jugadores
-│   │   └── annual-reports/ # Reportes anuales
-│   ├── components/        # Componentes React reutilizables
-│   │   └── ui/           # Componentes de UI (shadcn/ui)
-│   ├── contexts/         # Context providers (React Context)
-│   ├── hooks/            # Custom React hooks
-│   ├── lib/              # Utilidades y funciones auxiliares
-│   │   ├── db.ts         # Funciones de base de datos
-│   │   ├── actions.ts    # Server actions
-│   │   └── utils.ts      # Utilidades generales
-│   ├── public/           # Archivos estáticos
-│   ├── styles/           # Estilos globales
-│   └── package.json      # Dependencias de Next.js
-│
-├── electron-app/          # Aplicación Electron
-│   ├── main.cjs          # Proceso principal de Electron
-│   └── package.json      # Dependencias de Electron
-│
-├── db/                    # Base de datos (SQLite)
-│
-└── package.json          # Scripts principales del proyecto
+├── src/                    # Next.js app
+│   ├── app/                # App Router pages and routes
+│   ├── components/         # Reusable React components
+│   ├── contexts/           # React context providers
+│   ├── hooks/              # Custom hooks
+│   ├── lib/                # DB access, server actions, utilities
+│   ├── styles/             # Global styles
+│   └── package.json        # Next.js dependencies/scripts
+├── electron-app/           # Electron wrapper
+│   ├── main.cjs            # Electron main process
+│   └── package.json
+├── docker-compose.yml      # App + PostgreSQL local stack
+├── Dockerfile              # Production image for Next.js app
+└── package.json            # Root scripts
 ```
 
-## 🚀 Instalación
+## Prerequisites
 
-### 1. Instalar todas las dependencias
+- Node.js 20+
+- npm
+- Docker (recommended for local PostgreSQL and app runtime)
+
+## Installation
+
+Install all dependencies from the repository root:
 
 ```bash
 npm run install:all
 ```
 
-O instalando manualmente:
+Manual alternative:
 
 ```bash
-# Raíz
 npm install
-
-# Next.js
 cd src && npm install
-
-# Electron
 cd ../electron-app && npm install
 ```
 
-## 🛠️ Desarrollo
+## Running the Project
 
-### Iniciar Next.js (Desarrollo Web)
+### Option A: Docker Compose (recommended)
+
+Starts PostgreSQL and the web app in containers.
 
 ```bash
-npm run dev
-# o
+docker compose up --build
+```
+
+App URL: http://localhost:3000
+
+### Option B: Local Next.js + local PostgreSQL
+
+1. Ensure PostgreSQL is running.
+2. Set environment variables (see Environment Variables below).
+3. Start the app:
+
+```bash
 npm run dev:next
 ```
 
-La aplicación estará disponible en `http://localhost:3000`
+App URL: http://localhost:3000
 
-### Iniciar con Electron (Aplicación de Escritorio)
+## Environment Variables
 
-Primero, inicia el servidor de Next.js:
+The app supports either a single connection string or discrete PostgreSQL settings.
 
-```bash
-npm run dev:next
+### Preferred
+
+```env
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DB_NAME
 ```
 
-Luego, en otra terminal, inicia Electron:
+### Alternative
 
-```bash
-npm run electron
+```env
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_USER=your_user
+POSTGRES_PASSWORD=your_password
+POSTGRES_DB=ftm
 ```
 
-## 📦 Construcción
+Notes:
 
-### Construir la aplicación Next.js
+- If DATABASE_URL is set, it is used first.
+- If DATABASE_URL is not set, POSTGRES_PASSWORD and a valid numeric POSTGRES_PORT are required.
 
-```bash
-npm run build:next
-```
+## Database
 
-### Construir todo el proyecto
+On startup, the app initializes required tables if they do not exist:
 
-```bash
-npm run build
-```
+- players
+- matches
+- match_players
 
-## 🎯 Características
+Initialization logic lives in src/lib/postgres.ts.
 
-- **Gestión de Jugadores**: CRUD completo de jugadores
-- **Estadísticas**: Seguimiento de estadísticas por jugador y por partido
-- **Reportes**: Generación de reportes personalizados
-- **Comparación**: Comparar rendimiento entre jugadores
-- **Reportes Anuales**: Análisis anuales del equipo
-- **Interfaz Moderna**: UI construida con Tailwind CSS y shadcn/ui
-- **Aplicación de Escritorio**: Empaquetado con Electron para uso offline
+## Available Scripts
 
-## 🔧 Tecnologías
+### Root scripts
 
-- **Frontend**: Next.js 15, React 19, TypeScript
-- **UI**: Tailwind CSS, shadcn/ui, Radix UI
-- **Gráficos**: Recharts
-- **Desktop**: Electron
-- **Database**: SQLite (Better-sqlite3)
+- npm run install:all: Install root, Next.js, and Electron dependencies
+- npm run dev:next: Start Next.js development server (from src)
+- npm run dev:electron: Start Electron in development mode
+- npm run dev: Alias for dev:next
+- npm run build:next: Build the Next.js app
+- npm run build:electron: Install Electron app dependencies
+- npm run build: Run Next.js and Electron build steps
+- npm start: Alias for dev:next
+- npm run electron: Alias for dev:electron
 
-## 📝 Scripts Disponibles
+### Next.js app scripts (in src/package.json)
 
-- `npm run dev` - Inicia Next.js en modo desarrollo
-- `npm run dev:next` - Inicia Next.js en modo desarrollo
-- `npm run dev:electron` - Inicia Electron en modo desarrollo
-- `npm run build` - Construye todo el proyecto
-- `npm run build:next` - Construye solo Next.js
-- `npm start` - Alias para `npm run dev`
-- `npm run electron` - Inicia Electron (requiere Next.js corriendo)
+- npm run dev
+- npm run build
+- npm run start
+- npm run lint
+- npm run export
+- npm run format
+- npm run format:check
 
-## 🗄️ Base de Datos
+## Docker Services
 
-La base de datos SQLite se encuentra en la carpeta `db/`. Los esquemas y funciones de acceso están definidos en `src/lib/db.ts`.
+docker-compose.yml defines:
 
-## 📄 Licencia
+- postgres: PostgreSQL 17 on host port 5433
+- app: Next.js app on port 3000
 
-Ver archivo [LICENSE](LICENSE)
+## License
 
-## 👤 Autor
+This project is licensed under the ISC License. See [LICENSE](LICENSE).
 
-Mateo Cornejo - [GitHub](https://github.com/CornejoMateo)
+## Author
+
+Mateo Cornejo
+
+- GitHub: https://github.com/CornejoMateo

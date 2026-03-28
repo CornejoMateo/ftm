@@ -4,7 +4,7 @@ export interface Player {
 	id: number;
 	name: string;
 	last_name: string;
-	dni: string | null;
+	dni: string;
 	position: string | null;
 	active: boolean;
 	date_of_birth: string;
