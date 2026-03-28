@@ -88,10 +88,17 @@ export async function initializeDatabase(): Promise<void> {
 			red_cards INTEGER DEFAULT 0,
 			starter BOOLEAN DEFAULT true,
 			minute_login INTEGER,
-			calification INTEGER,
+			calification DOUBLE PRECISION,
 			created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
 			UNIQUE(match_id, player_id)
 			)
+		`);
+
+		// Migrate older installations where calification was stored as INTEGER.
+		await db.query(`
+			ALTER TABLE match_players
+			ALTER COLUMN calification TYPE DOUBLE PRECISION
+			USING calification::DOUBLE PRECISION
 		`);
 	})();
 
